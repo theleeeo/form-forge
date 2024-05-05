@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+package form;
+
+option go_package = "go.leeeo.se/form-forge/api-go";
+
+message Form {
+  string id = 1;
+  string title = 2;
+  repeated Question questions = 3;
+}
+
+message Question {
+  string title = 1;
+  Type type = 2;
+  repeated string options = 3;
+
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_TEXT = 1;
+    TYPE_RADIO = 2;
+    TYPE_CHECKBOX = 3;
+  }
+}
+
+service FormService {
+  rpc GetByID(GetByIdParameters) returns (Form) {
+    option (google.api.http) = {
+      get : "/v1/forms/{id}"
+    };
+  };
+
+  rpc Create(CreateParameters) returns (Form) {
+    option (google.api.http) = {
+      post : "/v1/forms"
+      body : "*"
+    };
+  };
+}
+
+message GetByIdParameters { string id = 1; }
+
+message CreateParameters {
+  string title = 1;
+  repeated CreateQuestionParameters questions = 2;
+}
+
+message CreateQuestionParameters {
+  string title = 1;
+  Question.Type type = 2;
+  repeated string options = 3;
+}

@@ -19,3 +19,12 @@
 
 # Go workspace file
 go.work
+
+bin/
+
+data/
+tmp/
+
+.cfg.yml
+
+coverage.*
