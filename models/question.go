@@ -5,10 +5,9 @@ import "fmt"
 type QuestionType int
 
 const (
-	maxQuestionTypeNumber int          = 2
-	QuestionTypeText      QuestionType = 0
-	QuestionTypeRadio     QuestionType = 1
-	QuestionTypeCheckbox  QuestionType = 2
+	QuestionTypeText     QuestionType = 0
+	QuestionTypeRadio    QuestionType = 1
+	QuestionTypeCheckbox QuestionType = 2
 )
 
 type Question interface {
@@ -19,7 +18,6 @@ type Question interface {
 type QuestionBase struct {
 	FormID string
 	Title  string
-	Type   QuestionType
 }
 
 func (q QuestionBase) Validate() error {
@@ -29,10 +27,6 @@ func (q QuestionBase) Validate() error {
 
 	if q.Title == "" {
 		return fmt.Errorf("text is required")
-	}
-
-	if q.Type < 0 || int(q.Type) > maxQuestionTypeNumber {
-		return fmt.Errorf("invalid question type")
 	}
 
 	return nil

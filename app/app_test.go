@@ -35,7 +35,6 @@ func (t *TestSuiteRepo) TestCreateForm() {
 				QuestionBase: models.QuestionBase{
 					FormID: f.ID,
 					Title:  "Text question",
-					Type:   models.QuestionTypeText,
 				},
 			},
 		), q[0])
@@ -44,7 +43,6 @@ func (t *TestSuiteRepo) TestCreateForm() {
 				QuestionBase: models.QuestionBase{
 					FormID: f.ID,
 					Title:  "Radio question",
-					Type:   models.QuestionTypeRadio,
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -54,7 +52,6 @@ func (t *TestSuiteRepo) TestCreateForm() {
 				QuestionBase: models.QuestionBase{
 					FormID: f.ID,
 					Title:  "Checkbox question",
-					Type:   models.QuestionTypeCheckbox,
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -104,7 +101,6 @@ func (t *TestSuiteRepo) TestGetForm() {
 				QuestionBase: models.QuestionBase{
 					FormID: f.ID,
 					Title:  "Text question",
-					Type:   models.QuestionTypeText,
 				},
 			},
 		), q[0])
@@ -113,7 +109,6 @@ func (t *TestSuiteRepo) TestGetForm() {
 				QuestionBase: models.QuestionBase{
 					FormID: f.ID,
 					Title:  "Radio question",
-					Type:   models.QuestionTypeRadio,
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -123,7 +118,6 @@ func (t *TestSuiteRepo) TestGetForm() {
 				QuestionBase: models.QuestionBase{
 					FormID: f.ID,
 					Title:  "Checkbox question",
-					Type:   models.QuestionTypeCheckbox,
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},

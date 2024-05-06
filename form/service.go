@@ -51,7 +51,6 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 		base := models.QuestionBase{
 			FormID: form.ID,
 			Title:  q.Title,
-			Type:   q.Type,
 		}
 
 		switch q.Type {

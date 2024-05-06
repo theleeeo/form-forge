@@ -91,8 +91,19 @@ func (r *MySqlRepo) CreateForm(ctx context.Context, form *models.Form, questions
 func (r *MySqlRepo) insertQuestions(ctx context.Context, tx *sql.Tx, questions []models.Question) error {
 	for i, q := range questions {
 		questionBase := q.Question()
+		var questionType models.QuestionType
+
+		switch q.(type) {
+		case models.TextQuestion:
+			questionType = models.QuestionTypeText
+		case models.RadioQuestion:
+			questionType = models.QuestionTypeRadio
+		case models.CheckboxQuestion:
+			questionType = models.QuestionTypeCheckbox
+		}
+
 		result, err := tx.ExecContext(ctx, "INSERT INTO questions (form_id, order_idx, title, question_type) VALUES (?, ?, ?, ?)",
-			questionBase.FormID, i, questionBase.Title, questionBase.Type)
+			questionBase.FormID, i, questionBase.Title, questionType)
 		if err != nil {
 			return fmt.Errorf("insert question failed: %w", err)
 		}
@@ -158,13 +169,14 @@ func (r *MySqlRepo) GetQuestions(ctx context.Context, formID string) ([]models.Q
 	var questions []models.Question
 	for rows.Next() {
 		var base models.QuestionBase
+		var questionType models.QuestionType
 		var id int64
-		if err := rows.Scan(&id, &base.FormID, &base.Title, &base.Type); err != nil {
+		if err := rows.Scan(&id, &base.FormID, &base.Title, &questionType); err != nil {
 			return nil, fmt.Errorf("scan question failed: %w", err)
 		}
 
 		var q models.Question
-		switch base.Type {
+		switch questionType {
 		case models.QuestionTypeText:
 			q = models.TextQuestion{QuestionBase: base}
 		case models.QuestionTypeRadio:

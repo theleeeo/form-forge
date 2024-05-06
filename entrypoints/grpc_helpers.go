@@ -7,6 +7,7 @@ import (
 	api_go "go.leeeo.se/form-forge/api-go"
 	"go.leeeo.se/form-forge/form"
 	"go.leeeo.se/form-forge/models"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func convertCreateFormParams(params *api_go.CreateParameters) (form.CreateFormParams, error) {
@@ -49,19 +50,6 @@ func convertQuestionType(t api_go.Question_Type) (models.QuestionType, error) {
 	}
 }
 
-func convertQuestionTypeToProto(t models.QuestionType) api_go.Question_Type {
-	switch t {
-	case models.QuestionTypeText:
-		return api_go.Question_TYPE_TEXT
-	case models.QuestionTypeRadio:
-		return api_go.Question_TYPE_RADIO
-	case models.QuestionTypeCheckbox:
-		return api_go.Question_TYPE_CHECKBOX
-	default:
-		return api_go.Question_Type(-1)
-	}
-}
-
 func convertForm(ctx context.Context, f form.Form) (*api_go.Form, error) {
 	qs, err := f.Questions(ctx)
 	if err != nil {
@@ -77,16 +65,25 @@ func convertForm(ctx context.Context, f form.Form) (*api_go.Form, error) {
 		Id:        f.ID,
 		Title:     f.Title,
 		Questions: questions,
+		CreatedAt: timestamppb.New(f.CreatedAt),
 	}, nil
 }
 
 func convertQuestionToProto(q models.Question) *api_go.Question {
 	base := q.Question()
 
-	t := convertQuestionTypeToProto(base.Type)
-	if t == api_go.Question_Type(-1) {
+	var questionType api_go.Question_Type
+
+	switch q.(type) {
+	case models.TextQuestion:
+		questionType = api_go.Question_TYPE_TEXT
+	case models.RadioQuestion:
+		questionType = api_go.Question_TYPE_RADIO
+	case models.CheckboxQuestion:
+		questionType = api_go.Question_TYPE_CHECKBOX
+	default:
 		// This should never happen
-		panic(fmt.Sprintf("invalid question type: %d", base.Type))
+		panic(fmt.Sprintf("unhandled question type: %T", q))
 	}
 
 	var options []string
@@ -99,7 +96,7 @@ func convertQuestionToProto(q models.Question) *api_go.Question {
 
 	qp := &api_go.Question{
 		Title:   base.Title,
-		Type:    t,
+		Type:    questionType,
 		Options: options,
 	}
 	return qp
