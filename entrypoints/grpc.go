@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	api_go "go.leeeo.se/form-forge/api-go"
+	form_api "go.leeeo.se/form-forge/api-go/form/v1"
 	"go.leeeo.se/form-forge/app"
 )
 
-var _ api_go.FormServiceServer = &grpcFormHandler{}
+var _ form_api.FormServiceServer = &grpcFormHandler{}
 
-func NewFormGRPCHandler(app *app.App) api_go.FormServiceServer {
+func NewFormGRPCHandler(app *app.App) form_api.FormServiceServer {
 	return &grpcFormHandler{
 		app: app,
 	}
@@ -19,10 +19,10 @@ func NewFormGRPCHandler(app *app.App) api_go.FormServiceServer {
 type grpcFormHandler struct {
 	app *app.App
 
-	api_go.UnimplementedFormServiceServer
+	form_api.UnimplementedFormServiceServer
 }
 
-func (g *grpcFormHandler) Create(ctx context.Context, params *api_go.CreateParameters) (*api_go.Form, error) {
+func (g *grpcFormHandler) Create(ctx context.Context, params *form_api.CreateRequest) (*form_api.CreateResponse, error) {
 	p, err := convertCreateFormParams(params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters: %w", err)
@@ -38,10 +38,12 @@ func (g *grpcFormHandler) Create(ctx context.Context, params *api_go.CreateParam
 		return nil, fmt.Errorf("failed to convert form: %w", err)
 	}
 
-	return form, nil
+	return &form_api.CreateResponse{
+		Form: form,
+	}, nil
 }
 
-func (g *grpcFormHandler) GetByID(ctx context.Context, params *api_go.GetByIdParameters) (*api_go.Form, error) {
+func (g *grpcFormHandler) GetByID(ctx context.Context, params *form_api.GetByIDRequest) (*form_api.GetByIDResponse, error) {
 	f, err := g.app.GetForm(ctx, params.Id)
 	if err != nil {
 		return nil, err
@@ -52,5 +54,7 @@ func (g *grpcFormHandler) GetByID(ctx context.Context, params *api_go.GetByIdPar
 		return nil, fmt.Errorf("failed to convert form: %w", err)
 	}
 
-	return form, nil
+	return &form_api.GetByIDResponse{
+		Form: form,
+	}, nil
 }

@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-package form;
+package form.v1;
 
 option go_package = "go.leeeo.se/form-forge/api-go";
 
@@ -28,13 +28,13 @@ message Question {
 }
 
 service FormService {
-  rpc GetByID(GetByIdParameters) returns (Form) {
+  rpc GetByID(GetByIDRequest) returns (GetByIDResponse) {
     option (google.api.http) = {
       get : "/v1/forms/{id}"
     };
   };
 
-  rpc Create(CreateParameters) returns (Form) {
+  rpc Create(CreateRequest) returns (CreateResponse) {
     option (google.api.http) = {
       post : "/v1/forms"
       body : "*"
@@ -42,12 +42,16 @@ service FormService {
   };
 }
 
-message GetByIdParameters { string id = 1; }
+message GetByIDRequest { string id = 1; }
 
-message CreateParameters {
+message GetByIDResponse { Form form = 1; }
+
+message CreateRequest {
   string title = 1;
   repeated CreateQuestionParameters questions = 2;
 }
+
+message CreateResponse { Form form = 1; }
 
 message CreateQuestionParameters {
   string title = 1;

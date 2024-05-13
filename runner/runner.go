@@ -8,7 +8,7 @@ import (
 	"sync"
 	"syscall"
 
-	api_go "go.leeeo.se/form-forge/api-go"
+	form_api "go.leeeo.se/form-forge/api-go/form/v1"
 	"go.leeeo.se/form-forge/app"
 	"go.leeeo.se/form-forge/entrypoints"
 	"go.leeeo.se/form-forge/form"
@@ -52,7 +52,7 @@ func Run(cfg *Config) error {
 		GrpcAddr: cfg.GrpcAddress,
 		HttpAddr: cfg.HttpAddress,
 	})
-	server.RegisterService(&api_go.FormService_ServiceDesc, formGrpcServer, api_go.RegisterFormServiceHandlerFromEndpoint)
+	server.RegisterService(&form_api.FormService_ServiceDesc, formGrpcServer, form_api.RegisterFormServiceHandlerFromEndpoint)
 
 	//
 	// Run the server
