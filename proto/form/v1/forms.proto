@@ -5,7 +5,7 @@ import "google/protobuf/timestamp.proto";
 
 package form.v1;
 
-option go_package = "go.leeeo.se/form-forge/api-go";
+option go_package = "github.com/theleeeo/form-forge/api-go";
 
 message Form {
   string id = 1;

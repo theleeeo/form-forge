@@ -8,11 +8,11 @@ import (
 	"sync"
 	"syscall"
 
-	form_api "go.leeeo.se/form-forge/api-go/form/v1"
-	"go.leeeo.se/form-forge/app"
-	"go.leeeo.se/form-forge/entrypoints"
-	"go.leeeo.se/form-forge/form"
-	"go.leeeo.se/form-forge/repo"
+	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
+	"github.com/theleeeo/form-forge/app"
+	"github.com/theleeeo/form-forge/entrypoints"
+	"github.com/theleeeo/form-forge/form"
+	"github.com/theleeeo/form-forge/repo"
 )
 
 type Runner struct {

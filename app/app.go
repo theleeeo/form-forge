@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	"go.leeeo.se/form-forge/form"
+	"github.com/theleeeo/form-forge/form"
 )
 
 func New(formService *form.Service) *App {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"go.leeeo.se/form-forge/models"
+	"github.com/theleeeo/form-forge/models"
 )
 
 const (

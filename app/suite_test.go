@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"go.leeeo.se/form-forge/form"
-	"go.leeeo.se/form-forge/repo"
+	"github.com/theleeeo/form-forge/form"
+	"github.com/theleeeo/form-forge/repo"
 )
 
 const (

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	form_api "go.leeeo.se/form-forge/api-go/form/v1"
-	"go.leeeo.se/form-forge/form"
-	"go.leeeo.se/form-forge/models"
+	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
+	"github.com/theleeeo/form-forge/form"
+	"github.com/theleeeo/form-forge/models"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

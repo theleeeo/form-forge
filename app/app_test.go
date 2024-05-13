@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.leeeo.se/form-forge/form"
-	"go.leeeo.se/form-forge/models"
+	"github.com/theleeeo/form-forge/form"
+	"github.com/theleeeo/form-forge/models"
 )
 
 func (t *TestSuiteRepo) TestCreateForm() {

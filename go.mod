@@ -1,4 +1,4 @@
-module go.leeeo.se/form-forge
+module github.com/theleeeo/form-forge
 
 go 1.22.1
 

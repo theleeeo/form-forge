@@ -1,6 +1,6 @@
 package runner
 
-import "go.leeeo.se/form-forge/repo"
+import "github.com/theleeeo/form-forge/repo"
 
 type Config struct {
 	GrpcAddress string           `yaml:"grpc-address"`

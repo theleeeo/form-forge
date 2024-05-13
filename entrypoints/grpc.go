@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	form_api "go.leeeo.se/form-forge/api-go/form/v1"
-	"go.leeeo.se/form-forge/app"
+	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
+	"github.com/theleeeo/form-forge/app"
 )
 
 var _ form_api.FormServiceServer = &grpcFormHandler{}

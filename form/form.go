@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"go.leeeo.se/form-forge/models"
-	"go.leeeo.se/form-forge/repo"
+	"github.com/theleeeo/form-forge/models"
+	"github.com/theleeeo/form-forge/repo"
 )
 
 func NewForm(f models.Form) *Form {

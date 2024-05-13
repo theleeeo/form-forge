@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.leeeo.se/form-forge/models"
-	"go.leeeo.se/form-forge/repo"
+	"github.com/theleeeo/form-forge/models"
+	"github.com/theleeeo/form-forge/repo"
 )
 
 var (

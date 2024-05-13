@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"go.leeeo.se/form-forge/cmd"
+	"github.com/theleeeo/form-forge/cmd"
 )
 
 func main() {

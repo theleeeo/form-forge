@@ -1,6 +1,6 @@
 package form
 
-import "go.leeeo.se/form-forge/models"
+import "github.com/theleeeo/form-forge/models"
 
 type CreateFormParams struct {
 	Title     string

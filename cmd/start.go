@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"go.leeeo.se/form-forge/runner"
+	"github.com/theleeeo/form-forge/runner"
 	"gopkg.in/yaml.v3"
 )
 
