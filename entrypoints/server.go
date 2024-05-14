@@ -8,10 +8,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
@@ -81,11 +79,9 @@ func NewServer(ctx context.Context, cfg *Config) *server {
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 	)
 
-	rootMux := http.NewServeMux()
-	runtimeMux := runtime.NewServeMux()
 	httpServer := &http.Server{
 		Addr:         cfg.HttpAddr,
-		Handler:      rootMux,
+		Handler:      http.NewServeMux(),
 		ReadTimeout:  4 * time.Second,
 		WriteTimeout: 8 * time.Second,
 	}
@@ -95,9 +91,6 @@ func NewServer(ctx context.Context, cfg *Config) *server {
 		ctx: ctx,
 
 		grpcServer: grpcServer,
-
-		rootMux:    rootMux,
-		runtimeMux: runtimeMux,
 		httpServer: httpServer,
 	}
 
@@ -117,8 +110,6 @@ type server struct {
 
 	grpcServer *grpc.Server
 
-	rootMux    *http.ServeMux
-	runtimeMux *runtime.ServeMux
 	httpServer *http.Server
 }
 
@@ -153,11 +144,10 @@ func (s *server) Run() error {
 	return nil
 }
 
-func (s *server) RegisterService(desc *grpc.ServiceDesc, srv any, gwRegisterFunc func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error) {
+func (s *server) RegisterService(desc *grpc.ServiceDesc, srv any) {
 	s.grpcServer.RegisterService(desc, srv)
+}
 
-	if err := gwRegisterFunc(s.ctx, s.runtimeMux, s.cfg.GrpcAddr, []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}); err != nil {
-		panic(err)
-	}
-	s.rootMux.Handle("/api/", http.StripPrefix("/api", s.runtimeMux))
+func (s *server) Handle(pattern string, h http.Handler) {
+	s.httpServer.Handler.(*http.ServeMux).Handle(pattern, h)
 }

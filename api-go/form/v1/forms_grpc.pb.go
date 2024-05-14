@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: form/v1/forms.proto
 
-package api_go
+package v1
 
 import (
 	context "context"

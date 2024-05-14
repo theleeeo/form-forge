@@ -8,21 +8,21 @@ import (
 	"github.com/theleeeo/form-forge/app"
 )
 
-var _ form_api.FormServiceServer = &grpcFormHandler{}
+var _ form_api.FormServiceServer = &formGrpcServer{}
 
-func NewFormGRPCHandler(app *app.App) form_api.FormServiceServer {
-	return &grpcFormHandler{
+func NewFormGRPCServer(app *app.App) *formGrpcServer {
+	return &formGrpcServer{
 		app: app,
 	}
 }
 
-type grpcFormHandler struct {
+type formGrpcServer struct {
 	app *app.App
 
 	form_api.UnimplementedFormServiceServer
 }
 
-func (g *grpcFormHandler) Create(ctx context.Context, params *form_api.CreateRequest) (*form_api.CreateResponse, error) {
+func (g *formGrpcServer) Create(ctx context.Context, params *form_api.CreateRequest) (*form_api.CreateResponse, error) {
 	p, err := convertCreateFormParams(params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters: %w", err)
@@ -43,7 +43,7 @@ func (g *grpcFormHandler) Create(ctx context.Context, params *form_api.CreateReq
 	}, nil
 }
 
-func (g *grpcFormHandler) GetByID(ctx context.Context, params *form_api.GetByIDRequest) (*form_api.GetByIDResponse, error) {
+func (g *formGrpcServer) GetByID(ctx context.Context, params *form_api.GetByIDRequest) (*form_api.GetByIDResponse, error) {
 	f, err := g.app.GetForm(ctx, params.Id)
 	if err != nil {
 		return nil, err

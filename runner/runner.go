@@ -8,7 +8,8 @@ import (
 	"sync"
 	"syscall"
 
-	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
+	formv1 "github.com/theleeeo/form-forge/api-go/form/v1"
+	formConnect "github.com/theleeeo/form-forge/api-go/form/v1/v1connect"
 	"github.com/theleeeo/form-forge/app"
 	"github.com/theleeeo/form-forge/entrypoints"
 	"github.com/theleeeo/form-forge/form"
@@ -43,7 +44,7 @@ func Run(cfg *Config) error {
 	//
 	appImpl := app.New(formSrv)
 
-	formGrpcServer := entrypoints.NewFormGRPCHandler(appImpl)
+	formGrpcServer := entrypoints.NewFormGRPCServer(appImpl)
 
 	//
 	// GRPC server
@@ -52,7 +53,8 @@ func Run(cfg *Config) error {
 		GrpcAddr: cfg.GrpcAddress,
 		HttpAddr: cfg.HttpAddress,
 	})
-	server.RegisterService(&form_api.FormService_ServiceDesc, formGrpcServer, form_api.RegisterFormServiceHandlerFromEndpoint)
+	server.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
+	server.Handle(formConnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer)))
 
 	//
 	// Run the server

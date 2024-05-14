@@ -7,10 +7,10 @@ installDeps:
 	# go install github.com/99designs/gqlgen
 
 proto-gen: proto-lint
-	buf generate proto --exclude-path proto/google/api
+	buf generate proto
 
 proto-lint:
-	buf lint proto --exclude-path proto/google/api
+	buf lint proto
 
 build:
 	go mod tidy
