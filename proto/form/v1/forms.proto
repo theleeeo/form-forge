@@ -4,7 +4,7 @@ import "google/protobuf/timestamp.proto";
 
 package form.v1;
 
-option go_package = "github.com/theleeeo/form-forge/api-go/form/v1";
+option go_package = "github.com/theleeeo/form-forge/api-go/form/v1;form";
 
 message Form {
   string id = 1;
@@ -30,6 +30,10 @@ service FormService {
   rpc GetByID(GetByIDRequest) returns (GetByIDResponse);
 
   rpc Create(CreateRequest) returns (CreateResponse);
+
+  // rpc List(ListRequest) returns (ListResponse);
+  // rpc CreateVersion(CreateVersionRequest) returns (CreateVersionResponse);
+  // rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
 
 message GetByIDRequest { string id = 1; }

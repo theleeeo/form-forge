@@ -5,10 +5,10 @@ import (
 
 	"connectrpc.com/connect"
 	formv1 "github.com/theleeeo/form-forge/api-go/form/v1"
-	"github.com/theleeeo/form-forge/api-go/form/v1/v1connect"
+	"github.com/theleeeo/form-forge/api-go/form/v1/formconnect"
 )
 
-var _ v1connect.FormServiceHandler = &FormConnectServer{}
+var _ formconnect.FormServiceHandler = &FormConnectServer{}
 
 func NewFormConnectServer(grpcServer *formGrpcServer) *FormConnectServer {
 	return &FormConnectServer{grpcServer: grpcServer}

@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: form/v1/forms.proto
 
-package v1
+package form
 
 import (
 	context "context"

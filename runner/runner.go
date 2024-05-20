@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	formv1 "github.com/theleeeo/form-forge/api-go/form/v1"
-	formConnect "github.com/theleeeo/form-forge/api-go/form/v1/v1connect"
+	"github.com/theleeeo/form-forge/api-go/form/v1/formconnect"
 	"github.com/theleeeo/form-forge/app"
 	"github.com/theleeeo/form-forge/entrypoints"
 	"github.com/theleeeo/form-forge/form"
@@ -54,7 +54,7 @@ func Run(cfg *Config) error {
 		HttpAddr: cfg.HttpAddress,
 	})
 	server.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
-	server.Handle(formConnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer)))
+	server.Handle(formconnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer)))
 
 	//
 	// Run the server

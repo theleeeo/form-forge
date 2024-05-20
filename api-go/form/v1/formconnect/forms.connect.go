@@ -2,7 +2,7 @@
 //
 // Source: form/v1/forms.proto
 
-package v1connect
+package formconnect
 
 import (
 	connect "connectrpc.com/connect"
