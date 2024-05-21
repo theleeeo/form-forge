@@ -113,6 +113,10 @@ type server struct {
 	httpServer *http.Server
 }
 
+func (s *server) Mux() *http.ServeMux {
+	return s.httpServer.Handler.(*http.ServeMux)
+}
+
 func (s *server) Run() error {
 	listener, err := net.Listen("tcp", s.cfg.GrpcAddr)
 	if err != nil {

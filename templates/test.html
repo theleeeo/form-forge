@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Form</title>
+</head>
+
+<body>
+    <h1>{{ .Title }}</h1>
+
+    <form action="/submit/{{.ID}}" method="post">
+        {{ range .Questions }}
+        {{ $question := . }}
+        {{ if eq .Type "text" }}
+        <div>
+            <label for="{{ $question.Order }}">{{ .Title }}</label>
+            <input type="text" id="{{ $question.Order }}" name="{{ $question.Order }}">
+        </div>
+
+        {{ else if eq .Type "radio" }}
+        <div>
+            <label>{{ .Title }}</label>
+            {{ range .Options }}
+            <div>
+                <input type="radio" id="{{ $question.Order }}-{{ .Order }}" name="{{ $question.Order }}"
+                    value="{{ $question.Order }}-{{ .Order }}">
+                <label for="{{ $question.Order }}-{{ .Order }}">{{ .Label }}</label>
+            </div>
+            {{ end }}
+        </div>
+
+        {{ else if eq .Type "checkbox" }}
+        <div>
+            <label>{{ .Title }}</label>
+            {{ range .Options }}
+            <div>
+                <input type="checkbox" id="{{ $question.Order }}-{{ .Order }}" name="{{ $question.Order }}"
+                    value="{{ $question.Order }}-{{ .Order }}">
+                <label for="{{ $question.Order }}-{{ .Order }}">{{ .Label }}</label>
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        {{ end }}
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>

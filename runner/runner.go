@@ -47,7 +47,7 @@ func Run(cfg *Config) error {
 	formGrpcServer := entrypoints.NewFormGRPCServer(appImpl)
 
 	//
-	// GRPC server
+	// API Server
 	//
 	server := entrypoints.NewServer(ctx, &entrypoints.Config{
 		GrpcAddr: cfg.GrpcAddress,
@@ -56,6 +56,8 @@ func Run(cfg *Config) error {
 	server.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
 	server.Handle(formconnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer)))
 
+	httpHandler := entrypoints.NewRestHandler(appImpl)
+	httpHandler.RegisterRoutes(server.Mux())
 	//
 	// Run the server
 	//

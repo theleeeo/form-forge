@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -136,6 +137,10 @@ func setupTables(ctx context.Context, db *sql.DB) error {
 
 	for _, entry := range entries {
 		if entry.IsDir() {
+			continue
+		}
+
+		if !strings.HasSuffix(entry.Name(), ".sql") {
 			continue
 		}
 
