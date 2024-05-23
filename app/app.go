@@ -3,9 +3,12 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/theleeeo/form-forge/form"
+	"github.com/theleeeo/form-forge/models"
 	"github.com/theleeeo/form-forge/repo"
+	"github.com/theleeeo/form-forge/response"
 	"github.com/theleeeo/form-forge/templater"
 )
 
@@ -13,16 +16,18 @@ var (
 	ErrFormNotFound = errors.New("form not found")
 )
 
-func New(formService *form.Service) *App {
+func New(formService *form.Service, responseService *response.Service) *App {
 	return &App{
-		formService: formService,
-		templater:   templater.New(),
+		formService:     formService,
+		responseService: responseService,
+		templater:       templater.New(),
 	}
 }
 
 type App struct {
-	formService *form.Service
-	templater   *templater.Templater
+	formService     *form.Service
+	responseService *response.Service
+	templater       *templater.Templater
 }
 
 func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (form.Form, error) {
@@ -54,4 +59,51 @@ func (a *App) TemplateForm(ctx context.Context, id string) ([]byte, error) {
 	}
 
 	return tpl, nil
+}
+
+func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string][]string) error {
+	f, err := a.GetForm(ctx, formId)
+	if err != nil {
+		return err
+	}
+
+	questions, err := f.Questions(ctx)
+	if err != nil {
+		return err
+	}
+
+	formData := response.FormData{
+		Id: f.ID,
+	}
+
+	for i, q := range questions {
+		var questionType models.QuestionType
+		var optionCount int
+		switch q := q.(type) {
+		case models.TextQuestion:
+			questionType = models.QuestionTypeText
+			optionCount = 0
+		case models.RadioQuestion:
+			questionType = models.QuestionTypeRadio
+			optionCount = len(q.Options)
+		case models.CheckboxQuestion:
+			questionType = models.QuestionTypeCheckbox
+			optionCount = len(q.Options)
+		}
+
+		formData.Questions = append(formData.Questions, response.QuestionData{
+			Type:        questionType,
+			Order:       i,
+			OptionCount: optionCount,
+		})
+	}
+
+	r, err := a.responseService.ParseResponse(formData, resp)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(r)
+
+	return nil
 }

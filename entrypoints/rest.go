@@ -37,9 +37,12 @@ func (h *restHandler) handleSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the parsed data
-	log.Printf("Parsed data: %v", r.PostForm)
+	log.Printf("Recieved response for post: %s", id)
+	for k, v := range r.PostForm {
+		log.Printf("Key: %s, Value: %v", k, v)
+	}
 
+	h.app.SubmitResponse(r.Context(), id, r.PostForm)
 }
 
 func (h *restHandler) getRenderedForm(w http.ResponseWriter, r *http.Request) {

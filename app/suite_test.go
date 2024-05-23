@@ -41,7 +41,7 @@ func (t *TestSuiteRepo) SetupSuite() {
 	}
 
 	formService := form.NewService(repo)
-	t.app = New(formService)
+	t.app = New(formService, nil)
 }
 
 func (t *TestSuiteRepo) TearDownAllSuite() {

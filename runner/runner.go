@@ -14,6 +14,7 @@ import (
 	"github.com/theleeeo/form-forge/entrypoints"
 	"github.com/theleeeo/form-forge/form"
 	"github.com/theleeeo/form-forge/repo"
+	"github.com/theleeeo/form-forge/response"
 )
 
 type Runner struct {
@@ -38,11 +39,12 @@ func Run(cfg *Config) error {
 	// User service
 	//
 	formSrv := form.NewService(repo)
+	responseSrv := response.NewService()
 
 	//
 	// App
 	//
-	appImpl := app.New(formSrv)
+	appImpl := app.New(formSrv, responseSrv)
 
 	formGrpcServer := entrypoints.NewFormGRPCServer(appImpl)
 

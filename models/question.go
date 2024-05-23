@@ -20,6 +20,10 @@ type QuestionBase struct {
 	Title  string
 }
 
+func (q QuestionBase) Question() QuestionBase {
+	return q
+}
+
 func (q QuestionBase) Validate() error {
 	if q.FormID == "" {
 		return fmt.Errorf("form id is required")
@@ -37,10 +41,6 @@ type TextQuestion struct {
 	QuestionBase
 }
 
-func (q TextQuestion) Question() QuestionBase {
-	return q.QuestionBase
-}
-
 func (q TextQuestion) Validate() error {
 	if err := q.QuestionBase.Validate(); err != nil {
 		return err
@@ -52,10 +52,6 @@ func (q TextQuestion) Validate() error {
 type RadioQuestion struct {
 	QuestionBase
 	Options []string
-}
-
-func (q RadioQuestion) Question() QuestionBase {
-	return q.QuestionBase
 }
 
 func (q RadioQuestion) Validate() error {
@@ -79,10 +75,6 @@ func (q RadioQuestion) Validate() error {
 type CheckboxQuestion struct {
 	QuestionBase
 	Options []string
-}
-
-func (q CheckboxQuestion) Question() QuestionBase {
-	return q.QuestionBase
 }
 
 func (q CheckboxQuestion) Validate() error {
