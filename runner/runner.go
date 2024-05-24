@@ -30,16 +30,27 @@ func Run(cfg *Config) error {
 	//
 	// Create the repository
 	//
-	repo, err := repo.NewMySql(&cfg.RepoCfg, nil)
+	formRepo, err := repo.NewMySql(&cfg.RepoCfg, nil)
 	if err != nil {
 		return err
 	}
-	defer repo.Close()
+	defer formRepo.Close()
+
+	resopnseRepo, err := response.NewMySql(&response.MySqlConfig{
+		Address:  cfg.RepoCfg.Address,
+		User:     cfg.RepoCfg.User,
+		Password: cfg.RepoCfg.Password,
+		Database: cfg.RepoCfg.Database,
+	}, nil)
+	if err != nil {
+		return err
+	}
+	defer resopnseRepo.Close()
 
 	// User service
 	//
-	formSrv := form.NewService(repo)
-	responseSrv := response.NewService()
+	formSrv := form.NewService(formRepo)
+	responseSrv := response.NewService(resopnseRepo)
 
 	//
 	// App

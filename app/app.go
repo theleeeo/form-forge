@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/theleeeo/form-forge/form"
 	"github.com/theleeeo/form-forge/models"
@@ -67,13 +66,33 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 		return err
 	}
 
-	questions, err := f.Questions(ctx)
+	formData, err := a.convertToFormData(ctx, f)
 	if err != nil {
 		return err
 	}
 
+	r, err := a.responseService.ParseResponse(formData, resp)
+	if err != nil {
+		return err
+	}
+
+	err = a.responseService.SaveResponse(ctx, r)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) convertToFormData(ctx context.Context, f form.Form) (response.FormData, error) {
+	questions, err := f.Questions(ctx)
+	if err != nil {
+		return response.FormData{}, err
+	}
+
 	formData := response.FormData{
-		Id: f.ID,
+		Id:      f.ID,
+		Version: f.Version,
 	}
 
 	for i, q := range questions {
@@ -98,12 +117,5 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 		})
 	}
 
-	r, err := a.responseService.ParseResponse(formData, resp)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(r)
-
-	return nil
+	return formData, nil
 }

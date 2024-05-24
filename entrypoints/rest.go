@@ -42,7 +42,10 @@ func (h *restHandler) handleSubmit(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Key: %s, Value: %v", k, v)
 	}
 
-	h.app.SubmitResponse(r.Context(), id, r.PostForm)
+	if err := h.app.SubmitResponse(r.Context(), id, r.PostForm); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *restHandler) getRenderedForm(w http.ResponseWriter, r *http.Request) {

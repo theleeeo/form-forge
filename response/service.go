@@ -9,28 +9,34 @@ import (
 	"github.com/theleeeo/form-forge/models"
 )
 
-func NewService() *Service {
-	return &Service{}
+func NewService(repo *MySqlRepo) *Service {
+	return &Service{
+		repo: repo,
+	}
 }
 
-type Service struct{}
+type Service struct {
+	repo *MySqlRepo
+}
 
 type FormData struct {
 	Id        string
+	Version   int
 	Questions []QuestionData
 }
 
 type QuestionData struct {
-	Type        models.QuestionType
 	Order       int
+	Type        models.QuestionType
 	OptionCount int
 }
 
 func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Response, error) {
 	r := Response{
-		Id:      uuid.NewString(),
-		FormId:  formData.Id,
-		Answers: make([]Answer, len(resp)),
+		Id:          uuid.NewString(),
+		FormId:      formData.Id,
+		FormVersion: formData.Version,
+		Answers:     make([]Answer, len(resp)),
 	}
 
 	for q, a := range resp {
@@ -41,6 +47,10 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 		questionOrder, err := strconv.Atoi(q)
 		if err != nil {
 			return Response{}, fmt.Errorf("answer key %s could not be parsed: %w", q, err)
+		}
+
+		if questionOrder < 0 || questionOrder >= len(formData.Questions) {
+			return Response{}, fmt.Errorf("answer key %s is out of range", q)
 		}
 
 		base := AnswerBase{
@@ -56,6 +66,10 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 			}
 
 		case models.QuestionTypeRadio:
+			if len(a) > 1 {
+				return Response{}, fmt.Errorf("answer %s has more than one value", q)
+			}
+
 			value, err := strconv.Atoi(a[0])
 			if err != nil {
 				return Response{}, fmt.Errorf("answer value %s could not be parsed: %w", a[0], err)
@@ -98,6 +112,5 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 }
 
 func (s *Service) SaveResponse(ctx context.Context, resp Response) error {
-	// Save the response to the database.
-	return nil
+	return s.repo.SaveResponse(ctx, resp)
 }

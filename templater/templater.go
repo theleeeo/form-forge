@@ -46,8 +46,8 @@ func ResolveForm(ctx context.Context, f form.Form) (expandedForm, error) {
 	}
 
 	questions := make([]expandedQuestion, 0, len(qs))
-	for i, q := range qs {
-		qb := q.Question()
+	for questionOrder, q := range qs {
+		questionBase := q.Question()
 
 		var options []string
 		var qType string
@@ -70,23 +70,19 @@ func ResolveForm(ctx context.Context, f form.Form) (expandedForm, error) {
 			})
 		}
 
-		cq := expandedQuestion{
-			Title:   qb.Title,
+		questions = append(questions, expandedQuestion{
+			Title:   questionBase.Title,
 			Type:    qType,
 			Options: expOptions,
-			Order:   i,
-		}
-
-		questions = append(questions, cq)
+			Order:   questionOrder,
+		})
 	}
 
-	fr := expandedForm{
+	return expandedForm{
 		ID:        f.ID,
 		Title:     f.Title,
 		Questions: questions,
-	}
-
-	return fr, nil
+	}, nil
 }
 
 func (t *Templater) Generate(ctx context.Context, f form.Form) ([]byte, error) {

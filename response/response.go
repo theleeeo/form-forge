@@ -6,7 +6,8 @@ type Response struct {
 	// ID is the unique identifier of the response.
 	Id string
 	// FormId is the ID of the form this response is for.
-	FormId string
+	FormId      string
+	FormVersion int
 
 	// Answers is the list of answers to the questions in the form.
 	Answers []Answer
@@ -19,7 +20,7 @@ type Answer interface {
 }
 
 type AnswerBase struct {
-	// QuestionOrder is the order of the question in the form.
+	// QuestionOrder is the order of the question this answer is for.
 	QuestionOrder int
 }
 
