@@ -38,7 +38,6 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 	id := UUIDNew().String()
 	form := &models.Form{
 		ID:        id,
-		BaseID:    id,
 		Version:   1,
 		Title:     params.Title,
 		CreatedAt: TimeNow().UTC(),
@@ -49,8 +48,9 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 		var question models.Question
 
 		base := models.QuestionBase{
-			FormID: form.ID,
-			Title:  q.Title,
+			FormID:      form.ID,
+			FormVersion: form.Version,
+			Title:       q.Title,
 		}
 
 		switch q.Type {

@@ -25,7 +25,6 @@ func (t *TestSuiteRepo) TestCreateForm() {
 
 		t.Equal("Test Form", f.Title)
 		t.Equal(1, f.Version)
-		t.Equal(f.ID, f.BaseID)
 		t.NoError(uuid.Validate(f.ID))
 		q, err := f.Questions(context.Background())
 		t.NoError(err)
@@ -33,16 +32,18 @@ func (t *TestSuiteRepo) TestCreateForm() {
 		t.Equal(models.Question(
 			models.TextQuestion{
 				QuestionBase: models.QuestionBase{
-					FormID: f.ID,
-					Title:  "Text question",
+					FormID:      f.ID,
+					FormVersion: 1,
+					Title:       "Text question",
 				},
 			},
 		), q[0])
 		t.Equal(models.Question(
 			models.RadioQuestion{
 				QuestionBase: models.QuestionBase{
-					FormID: f.ID,
-					Title:  "Radio question",
+					FormID:      f.ID,
+					FormVersion: 1,
+					Title:       "Radio question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -50,8 +51,9 @@ func (t *TestSuiteRepo) TestCreateForm() {
 		t.Equal(models.Question(
 			models.CheckboxQuestion{
 				QuestionBase: models.QuestionBase{
-					FormID: f.ID,
-					Title:  "Checkbox question",
+					FormID:      f.ID,
+					FormVersion: 1,
+					Title:       "Checkbox question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -88,7 +90,6 @@ func (t *TestSuiteRepo) TestGetForm() {
 
 		t.Equal("Test Form", f.Title)
 		t.Equal(1, f.Version)
-		t.Equal(f.ID, f.BaseID)
 		t.NoError(uuid.Validate(f.ID))
 		t.Equal("00000000-0000-0000-0000-000000000001", f.ID)
 		q, err := f.Questions(context.Background())
@@ -99,16 +100,18 @@ func (t *TestSuiteRepo) TestGetForm() {
 		t.Equal(models.Question(
 			models.TextQuestion{
 				QuestionBase: models.QuestionBase{
-					FormID: f.ID,
-					Title:  "Text question",
+					FormID:      f.ID,
+					FormVersion: 1,
+					Title:       "Text question",
 				},
 			},
 		), q[0])
 		t.Equal(models.Question(
 			models.RadioQuestion{
 				QuestionBase: models.QuestionBase{
-					FormID: f.ID,
-					Title:  "Radio question",
+					FormID:      f.ID,
+					FormVersion: 1,
+					Title:       "Radio question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -116,8 +119,9 @@ func (t *TestSuiteRepo) TestGetForm() {
 		t.Equal(models.Question(
 			models.CheckboxQuestion{
 				QuestionBase: models.QuestionBase{
-					FormID: f.ID,
-					Title:  "Checkbox question",
+					FormID:      f.ID,
+					FormVersion: 1,
+					Title:       "Checkbox question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},

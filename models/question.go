@@ -16,8 +16,9 @@ type Question interface {
 }
 
 type QuestionBase struct {
-	FormID string
-	Title  string
+	FormID      string
+	FormVersion int
+	Title       string
 }
 
 func (q QuestionBase) Question() QuestionBase {
@@ -27,6 +28,10 @@ func (q QuestionBase) Question() QuestionBase {
 func (q QuestionBase) Validate() error {
 	if q.FormID == "" {
 		return fmt.Errorf("form id is required")
+	}
+
+	if q.FormVersion == 0 {
+		return fmt.Errorf("form version is required")
 	}
 
 	if q.Title == "" {

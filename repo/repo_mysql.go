@@ -65,8 +65,8 @@ func (r *MySqlRepo) CreateForm(ctx context.Context, form *models.Form, questions
 		return fmt.Errorf("begin transaction failed: %w", err)
 	}
 
-	_, err = tx.ExecContext(ctx, "INSERT INTO forms (id, base_id, version, title, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)",
-		form.ID, form.BaseID, form.Version, form.Title, form.CreatedAt, form.CreatedBy)
+	_, err = tx.ExecContext(ctx, "INSERT INTO forms (id, version, title, created_at, created_by) VALUES (?, ?, ?, ?, ?)",
+		form.ID, form.Version, form.Title, form.CreatedAt, form.CreatedBy)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			log.Printf("rollback transaction failed: %v", err)
@@ -102,8 +102,8 @@ func (r *MySqlRepo) insertQuestions(ctx context.Context, tx *sql.Tx, questions [
 			questionType = models.QuestionTypeCheckbox
 		}
 
-		result, err := tx.ExecContext(ctx, "INSERT INTO questions (form_id, order_idx, title, question_type) VALUES (?, ?, ?, ?)",
-			questionBase.FormID, i, questionBase.Title, questionType)
+		result, err := tx.ExecContext(ctx, "INSERT INTO questions (form_id, form_version, order_idx, title, question_type) VALUES (?, ?, ?, ?, ?)",
+			questionBase.FormID, questionBase.FormVersion, i, questionBase.Title, questionType)
 		if err != nil {
 			return fmt.Errorf("insert question failed: %w", err)
 		}
@@ -141,8 +141,8 @@ func (r *MySqlRepo) insertOptions(ctx context.Context, tx *sql.Tx, questionID in
 func (r *MySqlRepo) GetForm(ctx context.Context, id string) (models.Form, error) {
 	var form models.Form
 	var createdAt string
-	err := r.db.QueryRowContext(ctx, "SELECT id, base_id, version, title, created_at, created_by FROM forms WHERE id = ?", id).
-		Scan(&form.ID, &form.BaseID, &form.Version, &form.Title, &createdAt, &form.CreatedBy)
+	err := r.db.QueryRowContext(ctx, "SELECT id, version, title, created_at, created_by FROM forms WHERE id = ?", id).
+		Scan(&form.ID, &form.Version, &form.Title, &createdAt, &form.CreatedBy)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Form{}, ErrNotFound
@@ -160,7 +160,7 @@ func (r *MySqlRepo) GetForm(ctx context.Context, id string) (models.Form, error)
 }
 
 func (r *MySqlRepo) GetQuestions(ctx context.Context, formID string) ([]models.Question, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT id, form_id, title, question_type FROM questions WHERE form_id = ? ORDER BY order_idx", formID)
+	rows, err := r.db.QueryContext(ctx, "SELECT id, form_id, form_version, title, question_type FROM questions WHERE form_id = ? ORDER BY order_idx", formID)
 	if err != nil {
 		return nil, fmt.Errorf("get questions failed: %w", err)
 	}
@@ -171,7 +171,7 @@ func (r *MySqlRepo) GetQuestions(ctx context.Context, formID string) ([]models.Q
 		var base models.QuestionBase
 		var questionType models.QuestionType
 		var id int64
-		if err := rows.Scan(&id, &base.FormID, &base.Title, &questionType); err != nil {
+		if err := rows.Scan(&id, &base.FormID, &base.FormVersion, &base.Title, &questionType); err != nil {
 			return nil, fmt.Errorf("scan question failed: %w", err)
 		}
 
