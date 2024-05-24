@@ -22,13 +22,13 @@ var (
 func executeSQLFile(db *sql.DB, filePath string) error {
 	fileContent, err := os.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("error reading SQL file (%s): %v", filePath, err)
+		return fmt.Errorf("error reading SQL file (%s): %w", filePath, err)
 	}
 
 	request := string(fileContent)
 	_, err = db.Exec(request)
 	if err != nil {
-		return fmt.Errorf("error executing SQL file (%s): %v", filePath, err)
+		return fmt.Errorf("error executing SQL file (%s): %w", filePath, err)
 	}
 
 	return nil
@@ -44,7 +44,7 @@ func load_env_vars() {
 	if v := os.Getenv("DB_PASSWORD"); v != "" {
 		dbPassword = v
 	} else {
-		log.Println("DB_PASSWORD environment variable is not set, using empty password")
+		log.Printf("DB_PASSWORD environment variable is not set, using empty password")
 	}
 
 	if v := os.Getenv("DB_NAME"); v != "" {
@@ -93,17 +93,20 @@ func main() {
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatalf("Could not connect to the database: %v", err)
+		log.Printf("Could not connect to the database: %v", err)
+		return
 	}
 	defer db.Close()
 
 	if err := db.Ping(); err != nil {
-		log.Fatalf("Could not ping the database: %v", err)
+		log.Printf("Could not ping the database: %v", err)
+		return
 	}
 
 	dir, err := os.ReadDir("migrations")
 	if err != nil {
-		log.Fatalf("Could not read migrations directory: %v", err)
+		log.Printf("Could not read migrations directory: %v", err)
+		return
 	}
 
 	for _, file := range dir {
@@ -116,7 +119,8 @@ func main() {
 		}
 
 		if err := executeSQLFile(db, filepath.Join("migrations", file.Name())); err != nil {
-			log.Fatalf("Failed to execute migration file (%s): %v", file.Name(), err)
+			log.Printf("Failed to execute migration file (%s): %v", file.Name(), err)
+			return
 		}
 		log.Printf("Successfully executed migration file: %s", file.Name())
 	}

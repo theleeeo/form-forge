@@ -9,10 +9,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-const (
-	timeFormat = "2006-01-02 15:04:05"
-)
-
 type MySqlConfig struct {
 	Address  string `yaml:"address"`
 	User     string `yaml:"user"`

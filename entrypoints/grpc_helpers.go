@@ -1,7 +1,6 @@
 package entrypoints
 
 import (
-	"context"
 	"fmt"
 
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
@@ -49,7 +48,7 @@ func convertQuestionType(t form_api.Question_Type) (form.QuestionType, error) {
 	}
 }
 
-func convertForm(ctx context.Context, f form.Form) (*form_api.Form, error) {
+func convertForm(f form.Form) *form_api.Form {
 	questions := make([]*form_api.Question, 0, len(f.Questions))
 	for _, q := range f.Questions {
 		questions = append(questions, convertQuestionToProto(q))
@@ -60,7 +59,7 @@ func convertForm(ctx context.Context, f form.Form) (*form_api.Form, error) {
 		Title:     f.Title,
 		Questions: questions,
 		CreatedAt: timestamppb.New(f.CreatedAt),
-	}, nil
+	}
 }
 
 func convertQuestionToProto(q form.Question) *form_api.Question {

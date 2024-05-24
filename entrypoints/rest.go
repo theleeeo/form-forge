@@ -58,5 +58,7 @@ func (h *restHandler) getRenderedForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(tpl)
+	if _, err := w.Write(tpl); err != nil {
+		log.Printf("error writing response: %v", err)
+	}
 }

@@ -34,13 +34,8 @@ func (g *formGrpcServer) Create(ctx context.Context, params *form_api.CreateRequ
 		return nil, err
 	}
 
-	form, err := convertForm(ctx, resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert form: %w", err)
-	}
-
 	return &form_api.CreateResponse{
-		Form: form,
+		Form: convertForm(resp),
 	}, nil
 }
 
@@ -50,13 +45,8 @@ func (g *formGrpcServer) GetById(ctx context.Context, params *form_api.GetByIdRe
 		return nil, err
 	}
 
-	form, err := convertForm(ctx, f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert form: %w", err)
-	}
-
 	return &form_api.GetByIdResponse{
-		Form: form,
+		Form: convertForm(f),
 	}, nil
 }
 
@@ -68,12 +58,7 @@ func (g *formGrpcServer) List(ctx context.Context, params *form_api.ListRequest)
 
 	var forms []*form_api.Form
 	for _, form := range f {
-		f, err := convertForm(ctx, form)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert form: %w", err)
-		}
-
-		forms = append(forms, f)
+		forms = append(forms, convertForm(form))
 	}
 
 	return &form_api.ListResponse{

@@ -86,12 +86,7 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 		return err
 	}
 
-	formData, err := a.convertToFormData(ctx, f)
-	if err != nil {
-		return err
-	}
-
-	r, err := a.responseService.ParseResponse(formData, resp)
+	r, err := a.responseService.ParseResponse(a.convertToFormData(f), resp)
 	if err != nil {
 		return err
 	}
@@ -104,7 +99,7 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 	return nil
 }
 
-func (a *App) convertToFormData(ctx context.Context, f form.Form) (response.FormData, error) {
+func (a *App) convertToFormData(f form.Form) response.FormData {
 	formData := response.FormData{
 		Id:      f.ID,
 		Version: f.Version,
@@ -132,5 +127,5 @@ func (a *App) convertToFormData(ctx context.Context, f form.Form) (response.Form
 		})
 	}
 
-	return formData, nil
+	return formData
 }
