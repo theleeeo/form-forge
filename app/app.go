@@ -44,6 +44,15 @@ func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (
 // 	return f, nil
 // }
 
+func (a *App) ListForms(ctx context.Context, params form.ListFormsParams) ([]form.Form, error) {
+	f, err := a.formService.ListForms(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
 func (a *App) GetForm(ctx context.Context, id string) (form.Form, error) {
 	f, err := a.formService.GetForm(ctx, id)
 	if err != nil {

@@ -115,3 +115,10 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
 	return s.repo.GetForm(ctx, id)
 }
+
+type ListFormsParams struct {
+}
+
+func (s *Service) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
+	return s.repo.ListForms(ctx, params)
+}

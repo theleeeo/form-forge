@@ -142,6 +142,32 @@ func (r *MySqlRepo) insertOptions(ctx context.Context, tx *sql.Tx, questionID in
 	return nil
 }
 
+func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
+	// yes this is a very inefficient way to list forms but it works for now
+	rows, err := r.db.QueryContext(ctx, "SELECT id FROM forms ORDER BY created_at DESC")
+	if err != nil {
+		return nil, fmt.Errorf("list forms failed: %w", err)
+	}
+	defer rows.Close()
+
+	var forms []Form
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scan form id failed: %w", err)
+		}
+
+		form, err := r.GetForm(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("get form failed: %w", err)
+		}
+
+		forms = append(forms, form)
+	}
+
+	return forms, nil
+}
+
 func (r *MySqlRepo) GetForm(ctx context.Context, id string) (Form, error) {
 	formBase, err := r.getFormBase(ctx, id)
 	if err != nil {

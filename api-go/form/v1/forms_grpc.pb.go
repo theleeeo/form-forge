@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	FormService_GetByID_FullMethodName = "/form.v1.FormService/GetByID"
+	FormService_GetById_FullMethodName = "/form.v1.FormService/GetById"
 	FormService_Create_FullMethodName  = "/form.v1.FormService/Create"
+	FormService_List_FullMethodName    = "/form.v1.FormService/List"
 )
 
 // FormServiceClient is the client API for FormService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FormServiceClient interface {
-	GetByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetByIDResponse, error)
+	GetById(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error)
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
 }
 
 type formServiceClient struct {
@@ -39,9 +41,9 @@ func NewFormServiceClient(cc grpc.ClientConnInterface) FormServiceClient {
 	return &formServiceClient{cc}
 }
 
-func (c *formServiceClient) GetByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetByIDResponse, error) {
-	out := new(GetByIDResponse)
-	err := c.cc.Invoke(ctx, FormService_GetByID_FullMethodName, in, out, opts...)
+func (c *formServiceClient) GetById(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error) {
+	out := new(GetByIdResponse)
+	err := c.cc.Invoke(ctx, FormService_GetById_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,23 +59,36 @@ func (c *formServiceClient) Create(ctx context.Context, in *CreateRequest, opts 
 	return out, nil
 }
 
+func (c *formServiceClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error) {
+	out := new(ListResponse)
+	err := c.cc.Invoke(ctx, FormService_List_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FormServiceServer is the server API for FormService service.
 // All implementations should embed UnimplementedFormServiceServer
 // for forward compatibility
 type FormServiceServer interface {
-	GetByID(context.Context, *GetByIDRequest) (*GetByIDResponse, error)
+	GetById(context.Context, *GetByIdRequest) (*GetByIdResponse, error)
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
+	List(context.Context, *ListRequest) (*ListResponse, error)
 }
 
 // UnimplementedFormServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedFormServiceServer struct {
 }
 
-func (UnimplementedFormServiceServer) GetByID(context.Context, *GetByIDRequest) (*GetByIDResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetByID not implemented")
+func (UnimplementedFormServiceServer) GetById(context.Context, *GetByIdRequest) (*GetByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
 }
 func (UnimplementedFormServiceServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedFormServiceServer) List(context.Context, *ListRequest) (*ListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 
 // UnsafeFormServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -87,20 +102,20 @@ func RegisterFormServiceServer(s grpc.ServiceRegistrar, srv FormServiceServer) {
 	s.RegisterService(&FormService_ServiceDesc, srv)
 }
 
-func _FormService_GetByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetByIDRequest)
+func _FormService_GetById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FormServiceServer).GetByID(ctx, in)
+		return srv.(FormServiceServer).GetById(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FormService_GetByID_FullMethodName,
+		FullMethod: FormService_GetById_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FormServiceServer).GetByID(ctx, req.(*GetByIDRequest))
+		return srv.(FormServiceServer).GetById(ctx, req.(*GetByIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -123,6 +138,24 @@ func _FormService_Create_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FormService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FormServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FormService_List_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FormServiceServer).List(ctx, req.(*ListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FormService_ServiceDesc is the grpc.ServiceDesc for FormService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,12 +164,16 @@ var FormService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*FormServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetByID",
-			Handler:    _FormService_GetByID_Handler,
+			MethodName: "GetById",
+			Handler:    _FormService_GetById_Handler,
 		},
 		{
 			MethodName: "Create",
 			Handler:    _FormService_Create_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _FormService_List_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

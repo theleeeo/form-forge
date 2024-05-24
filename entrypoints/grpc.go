@@ -6,6 +6,7 @@ import (
 
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/app"
+	"github.com/theleeeo/form-forge/form"
 )
 
 var _ form_api.FormServiceServer = &formGrpcServer{}
@@ -43,7 +44,7 @@ func (g *formGrpcServer) Create(ctx context.Context, params *form_api.CreateRequ
 	}, nil
 }
 
-func (g *formGrpcServer) GetByID(ctx context.Context, params *form_api.GetByIDRequest) (*form_api.GetByIDResponse, error) {
+func (g *formGrpcServer) GetById(ctx context.Context, params *form_api.GetByIdRequest) (*form_api.GetByIdResponse, error) {
 	f, err := g.app.GetForm(ctx, params.Id)
 	if err != nil {
 		return nil, err
@@ -54,7 +55,31 @@ func (g *formGrpcServer) GetByID(ctx context.Context, params *form_api.GetByIDRe
 		return nil, fmt.Errorf("failed to convert form: %w", err)
 	}
 
-	return &form_api.GetByIDResponse{
+	return &form_api.GetByIdResponse{
 		Form: form,
+	}, nil
+}
+
+func (g *formGrpcServer) List(ctx context.Context, params *form_api.ListRequest) (*form_api.ListResponse, error) {
+	f, err := g.app.ListForms(ctx, form.ListFormsParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	var forms []*form_api.Form
+	for _, form := range f {
+		f, err := convertForm(ctx, form)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert form: %w", err)
+		}
+
+		forms = append(forms, f)
+	}
+
+	return &form_api.ListResponse{
+		Forms: forms,
+		Pagination: &form_api.ResponsePagination{
+			Total: uint64(len(forms)),
+		},
 	}, nil
 }

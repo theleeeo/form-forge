@@ -27,18 +27,21 @@ message Question {
 }
 
 service FormService {
-  rpc GetByID(GetByIDRequest) returns (GetByIDResponse);
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse);
 
   rpc Create(CreateRequest) returns (CreateResponse);
 
-  // rpc List(ListRequest) returns (ListResponse);
+  rpc List(ListRequest) returns (ListResponse);
+
   // rpc CreateVersion(CreateVersionRequest) returns (CreateVersionResponse);
   // rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
 
-message GetByIDRequest { string id = 1; }
+message ResponsePagination { uint64 total = 1; }
 
-message GetByIDResponse { Form form = 1; }
+message GetByIdRequest { string id = 1; }
+
+message GetByIdResponse { Form form = 1; }
 
 message CreateRequest {
   string title = 1;
@@ -51,4 +54,11 @@ message CreateQuestionParameters {
   string title = 1;
   Question.Type type = 2;
   repeated string options = 3;
+}
+
+message ListRequest {}
+
+message ListResponse {
+  repeated Form forms = 1;
+  ResponsePagination pagination = 2;
 }

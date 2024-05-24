@@ -33,23 +33,27 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// FormServiceGetByIDProcedure is the fully-qualified name of the FormService's GetByID RPC.
-	FormServiceGetByIDProcedure = "/form.v1.FormService/GetByID"
+	// FormServiceGetByIdProcedure is the fully-qualified name of the FormService's GetById RPC.
+	FormServiceGetByIdProcedure = "/form.v1.FormService/GetById"
 	// FormServiceCreateProcedure is the fully-qualified name of the FormService's Create RPC.
 	FormServiceCreateProcedure = "/form.v1.FormService/Create"
+	// FormServiceListProcedure is the fully-qualified name of the FormService's List RPC.
+	FormServiceListProcedure = "/form.v1.FormService/List"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
 	formServiceServiceDescriptor       = v1.File_form_v1_forms_proto.Services().ByName("FormService")
-	formServiceGetByIDMethodDescriptor = formServiceServiceDescriptor.Methods().ByName("GetByID")
+	formServiceGetByIdMethodDescriptor = formServiceServiceDescriptor.Methods().ByName("GetById")
 	formServiceCreateMethodDescriptor  = formServiceServiceDescriptor.Methods().ByName("Create")
+	formServiceListMethodDescriptor    = formServiceServiceDescriptor.Methods().ByName("List")
 )
 
 // FormServiceClient is a client for the form.v1.FormService service.
 type FormServiceClient interface {
-	GetByID(context.Context, *connect.Request[v1.GetByIDRequest]) (*connect.Response[v1.GetByIDResponse], error)
+	GetById(context.Context, *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error)
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
+	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
 }
 
 // NewFormServiceClient constructs a client for the form.v1.FormService service. By default, it uses
@@ -62,10 +66,10 @@ type FormServiceClient interface {
 func NewFormServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) FormServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &formServiceClient{
-		getByID: connect.NewClient[v1.GetByIDRequest, v1.GetByIDResponse](
+		getById: connect.NewClient[v1.GetByIdRequest, v1.GetByIdResponse](
 			httpClient,
-			baseURL+FormServiceGetByIDProcedure,
-			connect.WithSchema(formServiceGetByIDMethodDescriptor),
+			baseURL+FormServiceGetByIdProcedure,
+			connect.WithSchema(formServiceGetByIdMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		create: connect.NewClient[v1.CreateRequest, v1.CreateResponse](
@@ -74,18 +78,25 @@ func NewFormServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(formServiceCreateMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		list: connect.NewClient[v1.ListRequest, v1.ListResponse](
+			httpClient,
+			baseURL+FormServiceListProcedure,
+			connect.WithSchema(formServiceListMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // formServiceClient implements FormServiceClient.
 type formServiceClient struct {
-	getByID *connect.Client[v1.GetByIDRequest, v1.GetByIDResponse]
+	getById *connect.Client[v1.GetByIdRequest, v1.GetByIdResponse]
 	create  *connect.Client[v1.CreateRequest, v1.CreateResponse]
+	list    *connect.Client[v1.ListRequest, v1.ListResponse]
 }
 
-// GetByID calls form.v1.FormService.GetByID.
-func (c *formServiceClient) GetByID(ctx context.Context, req *connect.Request[v1.GetByIDRequest]) (*connect.Response[v1.GetByIDResponse], error) {
-	return c.getByID.CallUnary(ctx, req)
+// GetById calls form.v1.FormService.GetById.
+func (c *formServiceClient) GetById(ctx context.Context, req *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error) {
+	return c.getById.CallUnary(ctx, req)
 }
 
 // Create calls form.v1.FormService.Create.
@@ -93,10 +104,16 @@ func (c *formServiceClient) Create(ctx context.Context, req *connect.Request[v1.
 	return c.create.CallUnary(ctx, req)
 }
 
+// List calls form.v1.FormService.List.
+func (c *formServiceClient) List(ctx context.Context, req *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error) {
+	return c.list.CallUnary(ctx, req)
+}
+
 // FormServiceHandler is an implementation of the form.v1.FormService service.
 type FormServiceHandler interface {
-	GetByID(context.Context, *connect.Request[v1.GetByIDRequest]) (*connect.Response[v1.GetByIDResponse], error)
+	GetById(context.Context, *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error)
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
+	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
 }
 
 // NewFormServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -105,10 +122,10 @@ type FormServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	formServiceGetByIDHandler := connect.NewUnaryHandler(
-		FormServiceGetByIDProcedure,
-		svc.GetByID,
-		connect.WithSchema(formServiceGetByIDMethodDescriptor),
+	formServiceGetByIdHandler := connect.NewUnaryHandler(
+		FormServiceGetByIdProcedure,
+		svc.GetById,
+		connect.WithSchema(formServiceGetByIdMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	formServiceCreateHandler := connect.NewUnaryHandler(
@@ -117,12 +134,20 @@ func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(formServiceCreateMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	formServiceListHandler := connect.NewUnaryHandler(
+		FormServiceListProcedure,
+		svc.List,
+		connect.WithSchema(formServiceListMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/form.v1.FormService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case FormServiceGetByIDProcedure:
-			formServiceGetByIDHandler.ServeHTTP(w, r)
+		case FormServiceGetByIdProcedure:
+			formServiceGetByIdHandler.ServeHTTP(w, r)
 		case FormServiceCreateProcedure:
 			formServiceCreateHandler.ServeHTTP(w, r)
+		case FormServiceListProcedure:
+			formServiceListHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -132,10 +157,14 @@ func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption
 // UnimplementedFormServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedFormServiceHandler struct{}
 
-func (UnimplementedFormServiceHandler) GetByID(context.Context, *connect.Request[v1.GetByIDRequest]) (*connect.Response[v1.GetByIDResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.GetByID is not implemented"))
+func (UnimplementedFormServiceHandler) GetById(context.Context, *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.GetById is not implemented"))
 }
 
 func (UnimplementedFormServiceHandler) Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.Create is not implemented"))
+}
+
+func (UnimplementedFormServiceHandler) List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.List is not implemented"))
 }

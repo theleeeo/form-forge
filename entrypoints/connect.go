@@ -26,8 +26,16 @@ func (f *FormConnectServer) Create(ctx context.Context, req *connect.Request[for
 	return connect.NewResponse(resp), nil
 }
 
-func (f *FormConnectServer) GetByID(ctx context.Context, req *connect.Request[formv1.GetByIDRequest]) (*connect.Response[formv1.GetByIDResponse], error) {
-	resp, err := f.grpcServer.GetByID(ctx, req.Msg)
+func (f *FormConnectServer) GetById(ctx context.Context, req *connect.Request[formv1.GetByIdRequest]) (*connect.Response[formv1.GetByIdResponse], error) {
+	resp, err := f.grpcServer.GetById(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (f *FormConnectServer) List(ctx context.Context, req *connect.Request[formv1.ListRequest]) (*connect.Response[formv1.ListResponse], error) {
+	resp, err := f.grpcServer.List(ctx, req.Msg)
 	if err != nil {
 		return nil, err
 	}
