@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/theleeeo/form-forge/models"
+	"github.com/theleeeo/form-forge/form"
 )
 
 func NewService(repo *MySqlRepo) *Service {
@@ -27,7 +27,7 @@ type FormData struct {
 
 type QuestionData struct {
 	Order       int
-	Type        models.QuestionType
+	Type        form.QuestionType
 	OptionCount int
 }
 
@@ -59,13 +59,13 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 
 		var answer Answer
 		switch formData.Questions[questionOrder].Type {
-		case models.QuestionTypeText:
+		case form.QuestionTypeText:
 			answer = TextAnswer{
 				AnswerBase: base,
 				Value:      a[0],
 			}
 
-		case models.QuestionTypeRadio:
+		case form.QuestionTypeRadio:
 			if len(a) > 1 {
 				return Response{}, fmt.Errorf("answer %s has more than one value", q)
 			}
@@ -84,7 +84,7 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 				Value:      value,
 			}
 
-		case models.QuestionTypeCheckbox:
+		case form.QuestionTypeCheckbox:
 			values := make([]int, len(a))
 			for i, v := range a {
 				value, err := strconv.Atoi(v)

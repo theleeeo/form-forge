@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/theleeeo/form-forge/form"
-	"github.com/theleeeo/form-forge/models"
 	"github.com/theleeeo/form-forge/response"
 	"github.com/theleeeo/form-forge/templater"
 )
@@ -31,6 +30,19 @@ type App struct {
 func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (form.Form, error) {
 	return a.formService.CreateNewForm(ctx, params)
 }
+
+// func (a *App) GetFormBase(ctx context.Context, id string) (form.FormBase, error) {
+// 	f, err := a.formService.GetFormBase(ctx, id)
+// 	if err != nil {
+// 		if errors.Is(err, form.ErrNotFound) {
+// 			return form.FormBase{}, ErrFormNotFound
+// 		}
+
+// 		return form.FormBase{}, err
+// 	}
+
+// 	return f, nil
+// }
 
 func (a *App) GetForm(ctx context.Context, id string) (form.Form, error) {
 	f, err := a.formService.GetForm(ctx, id)
@@ -84,28 +96,23 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 }
 
 func (a *App) convertToFormData(ctx context.Context, f form.Form) (response.FormData, error) {
-	questions, err := f.Questions(ctx)
-	if err != nil {
-		return response.FormData{}, err
-	}
-
 	formData := response.FormData{
 		Id:      f.ID,
 		Version: f.Version,
 	}
 
-	for i, q := range questions {
-		var questionType models.QuestionType
+	for i, q := range f.Questions {
+		var questionType form.QuestionType
 		var optionCount int
 		switch q := q.(type) {
-		case models.TextQuestion:
-			questionType = models.QuestionTypeText
+		case form.TextQuestion:
+			questionType = form.QuestionTypeText
 			optionCount = 0
-		case models.RadioQuestion:
-			questionType = models.QuestionTypeRadio
+		case form.RadioQuestion:
+			questionType = form.QuestionTypeRadio
 			optionCount = len(q.Options)
-		case models.CheckboxQuestion:
-			questionType = models.QuestionTypeCheckbox
+		case form.CheckboxQuestion:
+			questionType = form.QuestionTypeCheckbox
 			optionCount = len(q.Options)
 		}
 

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/theleeeo/form-forge/models"
 )
 
 var (
@@ -31,7 +30,7 @@ type CreateFormParams struct {
 }
 
 type CreateQuestionParams struct {
-	Type  models.QuestionType
+	Type  QuestionType
 	Title string
 	// Options is only required for radio and checkbox questions
 	Options []string
@@ -47,43 +46,45 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 	}
 
 	id := UUIDNew().String()
-	form := &models.Form{
-		ID:        id,
-		Version:   1,
-		Title:     params.Title,
-		CreatedAt: TimeNow().UTC(),
+	form := Form{
+		FormBase: FormBase{
+			ID:        id,
+			Version:   1,
+			Title:     params.Title,
+			CreatedAt: TimeNow().UTC(),
+		},
 	}
 
-	questions := make([]models.Question, 0, len(params.Questions))
+	questions := make([]Question, 0, len(params.Questions))
 	for _, q := range params.Questions {
-		var question models.Question
+		var question Question
 
-		base := models.QuestionBase{
+		base := QuestionBase{
 			FormID:      form.ID,
 			FormVersion: form.Version,
 			Title:       q.Title,
 		}
 
 		switch q.Type {
-		case models.QuestionTypeText:
-			question = models.TextQuestion{
+		case QuestionTypeText:
+			question = TextQuestion{
 				QuestionBase: base,
 			}
-		case models.QuestionTypeRadio:
+		case QuestionTypeRadio:
 			if len(q.Options) == 0 {
 				return Form{}, fmt.Errorf("options are required for radio questions")
 			}
 
-			question = models.RadioQuestion{
+			question = RadioQuestion{
 				QuestionBase: base,
 				Options:      q.Options,
 			}
-		case models.QuestionTypeCheckbox:
+		case QuestionTypeCheckbox:
 			if len(q.Options) == 0 {
 				return Form{}, fmt.Errorf("options are required for checkbox questions")
 			}
 
-			question = models.CheckboxQuestion{
+			question = CheckboxQuestion{
 				QuestionBase: base,
 				Options:      q.Options,
 			}
@@ -97,27 +98,20 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 			return Form{}, fmt.Errorf("question validation failed: %w", err)
 		}
 	}
+	form.Questions = questions
 
-	err := s.repo.CreateForm(ctx, form, questions)
+	err := s.repo.CreateForm(ctx, form)
 	if err != nil {
 		return Form{}, err
 	}
 
-	return Form{
-		Form:      *form,
-		repo:      s.repo,
-		questions: questions,
-	}, nil
+	return form, nil
 }
 
-func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
-	form, err := s.repo.GetForm(ctx, id)
-	if err != nil {
-		return Form{}, err
-	}
+// func (s *Service) GetFormBase(ctx context.Context, id string) (FormBase, error) {
+// 	return s.repo.getFormBase(ctx, id)
+//}
 
-	return Form{
-		Form: form,
-		repo: s.repo,
-	}, nil
+func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
+	return s.repo.GetForm(ctx, id)
 }

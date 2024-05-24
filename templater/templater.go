@@ -6,7 +6,6 @@ import (
 	"html/template"
 
 	"github.com/theleeeo/form-forge/form"
-	"github.com/theleeeo/form-forge/models"
 )
 
 // type Config struct {
@@ -39,26 +38,20 @@ type expandedOption struct {
 }
 
 func ResolveForm(ctx context.Context, f form.Form) (expandedForm, error) {
-	// Resolve the questions
-	qs, err := f.Questions(ctx)
-	if err != nil {
-		return expandedForm{}, err
-	}
-
-	questions := make([]expandedQuestion, 0, len(qs))
-	for questionOrder, q := range qs {
+	questions := make([]expandedQuestion, 0, len(f.Questions))
+	for questionOrder, q := range f.Questions {
 		questionBase := q.Question()
 
 		var options []string
 		var qType string
 		switch q := q.(type) {
-		case models.RadioQuestion:
+		case form.RadioQuestion:
 			options = q.Options
 			qType = "radio"
-		case models.CheckboxQuestion:
+		case form.CheckboxQuestion:
 			options = q.Options
 			qType = "checkbox"
-		case models.TextQuestion:
+		case form.TextQuestion:
 			qType = "text"
 		}
 

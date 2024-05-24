@@ -6,7 +6,6 @@ import (
 
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/form"
-	"github.com/theleeeo/form-forge/models"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -37,27 +36,22 @@ func convertCreateFormParams(params *form_api.CreateRequest) (form.CreateFormPar
 	}, nil
 }
 
-func convertQuestionType(t form_api.Question_Type) (models.QuestionType, error) {
+func convertQuestionType(t form_api.Question_Type) (form.QuestionType, error) {
 	switch t {
 	case form_api.Question_TYPE_TEXT:
-		return models.QuestionTypeText, nil
+		return form.QuestionTypeText, nil
 	case form_api.Question_TYPE_RADIO:
-		return models.QuestionTypeRadio, nil
+		return form.QuestionTypeRadio, nil
 	case form_api.Question_TYPE_CHECKBOX:
-		return models.QuestionTypeCheckbox, nil
+		return form.QuestionTypeCheckbox, nil
 	default:
-		return models.QuestionType(-1), fmt.Errorf("invalid question type: %s", t.String())
+		return form.QuestionType(-1), fmt.Errorf("invalid question type: %s", t.String())
 	}
 }
 
 func convertForm(ctx context.Context, f form.Form) (*form_api.Form, error) {
-	qs, err := f.Questions(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get questions: %w", err)
-	}
-
-	questions := make([]*form_api.Question, 0, len(qs))
-	for _, q := range qs {
+	questions := make([]*form_api.Question, 0, len(f.Questions))
+	for _, q := range f.Questions {
 		questions = append(questions, convertQuestionToProto(q))
 	}
 
@@ -69,17 +63,17 @@ func convertForm(ctx context.Context, f form.Form) (*form_api.Form, error) {
 	}, nil
 }
 
-func convertQuestionToProto(q models.Question) *form_api.Question {
+func convertQuestionToProto(q form.Question) *form_api.Question {
 	base := q.Question()
 
 	var questionType form_api.Question_Type
 
 	switch q.(type) {
-	case models.TextQuestion:
+	case form.TextQuestion:
 		questionType = form_api.Question_TYPE_TEXT
-	case models.RadioQuestion:
+	case form.RadioQuestion:
 		questionType = form_api.Question_TYPE_RADIO
-	case models.CheckboxQuestion:
+	case form.CheckboxQuestion:
 		questionType = form_api.Question_TYPE_CHECKBOX
 	default:
 		// This should never happen
@@ -88,9 +82,9 @@ func convertQuestionToProto(q models.Question) *form_api.Question {
 
 	var options []string
 	switch q := q.(type) {
-	case models.RadioQuestion:
+	case form.RadioQuestion:
 		options = q.Options
-	case models.CheckboxQuestion:
+	case form.CheckboxQuestion:
 		options = q.Options
 	}
 
