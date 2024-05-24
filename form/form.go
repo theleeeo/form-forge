@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/theleeeo/form-forge/models"
-	"github.com/theleeeo/form-forge/repo"
 )
 
 func NewForm(f models.Form) *Form {
@@ -16,7 +15,7 @@ func NewForm(f models.Form) *Form {
 
 // A representation of a complete form.
 type Form struct {
-	repo *repo.MySqlRepo
+	repo *MySqlRepo
 
 	models.Form
 	questions []models.Question

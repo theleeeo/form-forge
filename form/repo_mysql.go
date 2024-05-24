@@ -1,4 +1,4 @@
-package repo
+package form
 
 import (
 	"context"
@@ -14,6 +14,11 @@ import (
 
 const (
 	timeFormat = "2006-01-02 15:04:05"
+)
+
+var (
+	// ErrNotFound is returned when the requested resource is not found.
+	ErrNotFound = errors.New("not found")
 )
 
 type MySqlConfig struct {

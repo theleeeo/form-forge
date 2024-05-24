@@ -6,7 +6,6 @@ import (
 
 	"github.com/theleeeo/form-forge/form"
 	"github.com/theleeeo/form-forge/models"
-	"github.com/theleeeo/form-forge/repo"
 	"github.com/theleeeo/form-forge/response"
 	"github.com/theleeeo/form-forge/templater"
 )
@@ -36,7 +35,7 @@ func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (
 func (a *App) GetForm(ctx context.Context, id string) (form.Form, error) {
 	f, err := a.formService.GetForm(ctx, id)
 	if err != nil {
-		if errors.Is(err, repo.ErrNotFound) {
+		if errors.Is(err, form.ErrNotFound) {
 			return form.Form{}, ErrFormNotFound
 		}
 

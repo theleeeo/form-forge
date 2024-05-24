@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/theleeeo/form-forge/models"
-	"github.com/theleeeo/form-forge/repo"
 )
 
 var (
@@ -16,14 +15,26 @@ var (
 	TimeNow = time.Now
 )
 
-func NewService(repo *repo.MySqlRepo) *Service {
+func NewService(repo *MySqlRepo) *Service {
 	return &Service{
 		repo: repo,
 	}
 }
 
 type Service struct {
-	repo *repo.MySqlRepo
+	repo *MySqlRepo
+}
+
+type CreateFormParams struct {
+	Title     string
+	Questions []CreateQuestionParams
+}
+
+type CreateQuestionParams struct {
+	Type  models.QuestionType
+	Title string
+	// Options is only required for radio and checkbox questions
+	Options []string
 }
 
 func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (Form, error) {

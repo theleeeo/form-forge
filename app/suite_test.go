@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/theleeeo/form-forge/form"
-	"github.com/theleeeo/form-forge/repo"
 )
 
 const (
@@ -35,7 +34,7 @@ func (t *TestSuiteRepo) SetupSuite() {
 	t.db = db
 	t.stopFunc = stopFunc
 
-	repo, err := repo.NewMySql(nil, db)
+	repo, err := form.NewMySql(nil, db)
 	if err != nil {
 		t.T().Fatal(err)
 	}

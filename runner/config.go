@@ -1,9 +1,14 @@
 package runner
 
-import "github.com/theleeeo/form-forge/repo"
-
 type Config struct {
-	GrpcAddress string           `yaml:"grpc-address"`
-	HttpAddress string           `yaml:"http-address"`
-	RepoCfg     repo.MySqlConfig `yaml:"repo"`
+	GrpcAddress string      `yaml:"grpc-address"`
+	HttpAddress string      `yaml:"http-address"`
+	RepoCfg     MySqlConfig `yaml:"repo"`
+}
+
+type MySqlConfig struct {
+	Address  string `yaml:"address"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Database string `yaml:"database"`
 }

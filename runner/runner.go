@@ -13,7 +13,6 @@ import (
 	"github.com/theleeeo/form-forge/app"
 	"github.com/theleeeo/form-forge/entrypoints"
 	"github.com/theleeeo/form-forge/form"
-	"github.com/theleeeo/form-forge/repo"
 	"github.com/theleeeo/form-forge/response"
 )
 
@@ -30,7 +29,12 @@ func Run(cfg *Config) error {
 	//
 	// Create the repository
 	//
-	formRepo, err := repo.NewMySql(&cfg.RepoCfg, nil)
+	formRepo, err := form.NewMySql(&form.MySqlConfig{
+		Address:  cfg.RepoCfg.Address,
+		User:     cfg.RepoCfg.User,
+		Password: cfg.RepoCfg.Password,
+		Database: cfg.RepoCfg.Database,
+	}, nil)
 	if err != nil {
 		return err
 	}
