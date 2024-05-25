@@ -7,6 +7,8 @@ import (
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/app"
 	"github.com/theleeeo/form-forge/form"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ form_api.FormServiceServer = &formGrpcServer{}
@@ -67,4 +69,8 @@ func (g *formGrpcServer) List(ctx context.Context, params *form_api.ListRequest)
 			Total: uint64(len(forms)),
 		},
 	}, nil
+}
+
+func (g *formGrpcServer) Update(ctx context.Context, params *form_api.UpdateRequest) (*form_api.UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }

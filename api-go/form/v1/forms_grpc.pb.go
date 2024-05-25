@@ -22,6 +22,7 @@ const (
 	FormService_GetById_FullMethodName = "/form.v1.FormService/GetById"
 	FormService_Create_FullMethodName  = "/form.v1.FormService/Create"
 	FormService_List_FullMethodName    = "/form.v1.FormService/List"
+	FormService_Update_FullMethodName  = "/form.v1.FormService/Update"
 )
 
 // FormServiceClient is the client API for FormService service.
@@ -31,6 +32,9 @@ type FormServiceClient interface {
 	GetById(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error)
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
+	// Updating the form will create a new version of the form with its contents
+	// being the provided form
+	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 }
 
 type formServiceClient struct {
@@ -68,6 +72,15 @@ func (c *formServiceClient) List(ctx context.Context, in *ListRequest, opts ...g
 	return out, nil
 }
 
+func (c *formServiceClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+	out := new(UpdateResponse)
+	err := c.cc.Invoke(ctx, FormService_Update_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FormServiceServer is the server API for FormService service.
 // All implementations should embed UnimplementedFormServiceServer
 // for forward compatibility
@@ -75,6 +88,9 @@ type FormServiceServer interface {
 	GetById(context.Context, *GetByIdRequest) (*GetByIdResponse, error)
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
 	List(context.Context, *ListRequest) (*ListResponse, error)
+	// Updating the form will create a new version of the form with its contents
+	// being the provided form
+	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
 }
 
 // UnimplementedFormServiceServer should be embedded to have forward compatible implementations.
@@ -89,6 +105,9 @@ func (UnimplementedFormServiceServer) Create(context.Context, *CreateRequest) (*
 }
 func (UnimplementedFormServiceServer) List(context.Context, *ListRequest) (*ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedFormServiceServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
 
 // UnsafeFormServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -156,6 +175,24 @@ func _FormService_List_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FormService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FormServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FormService_Update_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FormServiceServer).Update(ctx, req.(*UpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FormService_ServiceDesc is the grpc.ServiceDesc for FormService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -174,6 +211,10 @@ var FormService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _FormService_List_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _FormService_Update_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

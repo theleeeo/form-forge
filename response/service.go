@@ -21,7 +21,7 @@ type Service struct {
 
 type FormData struct {
 	Id        string
-	Version   int
+	Version   uint32
 	Questions []QuestionData
 }
 

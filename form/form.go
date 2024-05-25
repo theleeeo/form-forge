@@ -6,7 +6,7 @@ import (
 
 type FormBase struct {
 	ID      string
-	Version int
+	Version uint32
 
 	Title     string
 	CreatedAt time.Time

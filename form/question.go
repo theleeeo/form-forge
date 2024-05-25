@@ -17,7 +17,7 @@ type Question interface {
 
 type QuestionBase struct {
 	FormID      string
-	FormVersion int
+	FormVersion uint32
 	Title       string
 }
 

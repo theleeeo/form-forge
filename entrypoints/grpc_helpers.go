@@ -56,6 +56,7 @@ func convertForm(f form.Form) *form_api.Form {
 
 	return &form_api.Form{
 		Id:        f.ID,
+		Version:   f.Version,
 		Title:     f.Title,
 		Questions: questions,
 		CreatedAt: timestamppb.New(f.CreatedAt),

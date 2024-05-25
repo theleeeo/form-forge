@@ -7,7 +7,7 @@ type Response struct {
 	Id string
 	// FormId is the ID of the form this response is for.
 	FormId      string
-	FormVersion int
+	FormVersion uint32
 
 	// Answers is the list of answers to the questions in the form.
 	Answers []Answer

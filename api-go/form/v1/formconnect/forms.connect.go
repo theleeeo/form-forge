@@ -39,6 +39,8 @@ const (
 	FormServiceCreateProcedure = "/form.v1.FormService/Create"
 	// FormServiceListProcedure is the fully-qualified name of the FormService's List RPC.
 	FormServiceListProcedure = "/form.v1.FormService/List"
+	// FormServiceUpdateProcedure is the fully-qualified name of the FormService's Update RPC.
+	FormServiceUpdateProcedure = "/form.v1.FormService/Update"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -47,6 +49,7 @@ var (
 	formServiceGetByIdMethodDescriptor = formServiceServiceDescriptor.Methods().ByName("GetById")
 	formServiceCreateMethodDescriptor  = formServiceServiceDescriptor.Methods().ByName("Create")
 	formServiceListMethodDescriptor    = formServiceServiceDescriptor.Methods().ByName("List")
+	formServiceUpdateMethodDescriptor  = formServiceServiceDescriptor.Methods().ByName("Update")
 )
 
 // FormServiceClient is a client for the form.v1.FormService service.
@@ -54,6 +57,9 @@ type FormServiceClient interface {
 	GetById(context.Context, *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error)
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
 	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
+	// Updating the form will create a new version of the form with its contents
+	// being the provided form
+	Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error)
 }
 
 // NewFormServiceClient constructs a client for the form.v1.FormService service. By default, it uses
@@ -84,6 +90,12 @@ func NewFormServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(formServiceListMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		update: connect.NewClient[v1.UpdateRequest, v1.UpdateResponse](
+			httpClient,
+			baseURL+FormServiceUpdateProcedure,
+			connect.WithSchema(formServiceUpdateMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -92,6 +104,7 @@ type formServiceClient struct {
 	getById *connect.Client[v1.GetByIdRequest, v1.GetByIdResponse]
 	create  *connect.Client[v1.CreateRequest, v1.CreateResponse]
 	list    *connect.Client[v1.ListRequest, v1.ListResponse]
+	update  *connect.Client[v1.UpdateRequest, v1.UpdateResponse]
 }
 
 // GetById calls form.v1.FormService.GetById.
@@ -109,11 +122,19 @@ func (c *formServiceClient) List(ctx context.Context, req *connect.Request[v1.Li
 	return c.list.CallUnary(ctx, req)
 }
 
+// Update calls form.v1.FormService.Update.
+func (c *formServiceClient) Update(ctx context.Context, req *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error) {
+	return c.update.CallUnary(ctx, req)
+}
+
 // FormServiceHandler is an implementation of the form.v1.FormService service.
 type FormServiceHandler interface {
 	GetById(context.Context, *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error)
 	Create(context.Context, *connect.Request[v1.CreateRequest]) (*connect.Response[v1.CreateResponse], error)
 	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
+	// Updating the form will create a new version of the form with its contents
+	// being the provided form
+	Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error)
 }
 
 // NewFormServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -140,6 +161,12 @@ func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(formServiceListMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	formServiceUpdateHandler := connect.NewUnaryHandler(
+		FormServiceUpdateProcedure,
+		svc.Update,
+		connect.WithSchema(formServiceUpdateMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/form.v1.FormService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FormServiceGetByIdProcedure:
@@ -148,6 +175,8 @@ func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption
 			formServiceCreateHandler.ServeHTTP(w, r)
 		case FormServiceListProcedure:
 			formServiceListHandler.ServeHTTP(w, r)
+		case FormServiceUpdateProcedure:
+			formServiceUpdateHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -167,4 +196,8 @@ func (UnimplementedFormServiceHandler) Create(context.Context, *connect.Request[
 
 func (UnimplementedFormServiceHandler) List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.List is not implemented"))
+}
+
+func (UnimplementedFormServiceHandler) Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.Update is not implemented"))
 }

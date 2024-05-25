@@ -8,9 +8,10 @@ option go_package = "github.com/theleeeo/form-forge/api-go/form/v1;form";
 
 message Form {
   string id = 1;
-  string title = 2;
-  repeated Question questions = 3;
-  google.protobuf.Timestamp created_at = 4;
+  uint32 version = 2;
+  string title = 3;
+  repeated Question questions = 4;
+  google.protobuf.Timestamp created_at = 5;
 }
 
 message Question {
@@ -33,7 +34,10 @@ service FormService {
 
   rpc List(ListRequest) returns (ListResponse);
 
-  // rpc CreateVersion(CreateVersionRequest) returns (CreateVersionResponse);
+  // Updating the form will create a new version of the form with its contents
+  // being the provided form
+  rpc Update(UpdateRequest) returns (UpdateResponse);
+
   // rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
 
@@ -62,3 +66,12 @@ message ListResponse {
   repeated Form forms = 1;
   ResponsePagination pagination = 2;
 }
+
+message UpdateRequest {
+  // The ID of the form to update
+  string id = 1;
+  // The new form to replace the old form with
+  CreateRequest new_form = 2;
+}
+
+message UpdateResponse { Form form = 1; }

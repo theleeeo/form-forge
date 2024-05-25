@@ -41,3 +41,11 @@ func (f *FormConnectServer) List(ctx context.Context, req *connect.Request[formv
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (f *FormConnectServer) Update(ctx context.Context, req *connect.Request[formv1.UpdateRequest]) (*connect.Response[formv1.UpdateResponse], error) {
+	resp, err := f.grpcServer.Update(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
