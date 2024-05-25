@@ -101,7 +101,7 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 
 func (a *App) convertToFormData(f form.Form) response.FormData {
 	formData := response.FormData{
-		Id:      f.ID,
+		Id:      f.Id,
 		Version: f.Version,
 	}
 

@@ -72,7 +72,7 @@ func ResolveForm(ctx context.Context, f form.Form) (expandedForm, error) {
 	}
 
 	return expandedForm{
-		ID:        f.ID,
+		ID:        f.Id,
 		Title:     f.Title,
 		Questions: questions,
 	}, nil

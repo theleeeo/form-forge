@@ -46,9 +46,11 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 	}
 
 	id := UUIDNew().String()
+	versionId := UUIDNew().String()
 	form := Form{
 		FormBase: FormBase{
-			ID:        id,
+			Id:        id,
+			VersionId: versionId,
 			Version:   1,
 			Title:     params.Title,
 			CreatedAt: TimeNow().UTC(),
@@ -60,9 +62,8 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 		var question Question
 
 		base := QuestionBase{
-			FormID:      form.ID,
-			FormVersion: form.Version,
-			Title:       q.Title,
+			FormVersionId: form.VersionId,
+			Title:         q.Title,
 		}
 
 		switch q.Type {
@@ -113,7 +114,7 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 //}
 
 func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
-	return s.repo.GetForm(ctx, id)
+	return s.repo.GetFormVersion(ctx, id)
 }
 
 type ListFormsParams struct {

@@ -69,8 +69,8 @@ func (r *MySqlRepo) CreateForm(ctx context.Context, form Form) error {
 		return fmt.Errorf("begin transaction failed: %w", err)
 	}
 
-	_, err = tx.ExecContext(ctx, "INSERT INTO forms (id, version, title, created_at, created_by) VALUES (?, ?, ?, ?, ?)",
-		form.ID, form.Version, form.Title, form.CreatedAt, form.CreatedBy)
+	_, err = tx.ExecContext(ctx, "INSERT INTO forms (id, version_id, version, title, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+		form.Id, form.VersionId, form.Version, form.Title, form.CreatedAt, form.CreatedBy)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			log.Printf("rollback transaction failed: %v", err)
@@ -106,8 +106,8 @@ func (r *MySqlRepo) insertQuestions(ctx context.Context, tx *sql.Tx, questions [
 			questionType = QuestionTypeCheckbox
 		}
 
-		result, err := tx.ExecContext(ctx, "INSERT INTO questions (form_id, form_version, order_idx, title, question_type) VALUES (?, ?, ?, ?, ?)",
-			questionBase.FormID, questionBase.FormVersion, i, questionBase.Title, questionType)
+		result, err := tx.ExecContext(ctx, "INSERT INTO questions (form_version_id, order_idx, title, question_type) VALUES (?, ?, ?, ?)",
+			questionBase.FormVersionId, i, questionBase.Title, questionType)
 		if err != nil {
 			return fmt.Errorf("insert question failed: %w", err)
 		}
@@ -144,7 +144,7 @@ func (r *MySqlRepo) insertOptions(ctx context.Context, tx *sql.Tx, questionID in
 
 func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
 	// yes this is a very inefficient way to list forms but it works for now
-	rows, err := r.db.QueryContext(ctx, "SELECT id FROM forms ORDER BY created_at DESC")
+	rows, err := r.db.QueryContext(ctx, "SELECT id, version_id FROM forms ORDER BY created_at DESC")
 	if err != nil {
 		return nil, fmt.Errorf("list forms failed: %w", err)
 	}
@@ -153,11 +153,12 @@ func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Fo
 	var forms []Form
 	for rows.Next() {
 		var id string
-		if err := rows.Scan(&id); err != nil {
+		var version_id string
+		if err := rows.Scan(&id, &version_id); err != nil {
 			return nil, fmt.Errorf("scan form id failed: %w", err)
 		}
 
-		form, err := r.GetForm(ctx, id)
+		form, err := r.GetFormVersion(ctx, version_id)
 		if err != nil {
 			return nil, fmt.Errorf("get form failed: %w", err)
 		}
@@ -168,13 +169,13 @@ func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Fo
 	return forms, nil
 }
 
-func (r *MySqlRepo) GetForm(ctx context.Context, id string) (Form, error) {
-	formBase, err := r.getFormBase(ctx, id)
+func (r *MySqlRepo) GetFormVersion(ctx context.Context, version_id string) (Form, error) {
+	formBase, err := r.getFormBaseVersion(ctx, version_id)
 	if err != nil {
 		return Form{}, err
 	}
 
-	questions, err := r.GetQuestions(ctx, id)
+	questions, err := r.GetQuestions(ctx, version_id)
 	if err != nil {
 		return Form{}, fmt.Errorf("get questions failed: %w", err)
 	}
@@ -185,11 +186,12 @@ func (r *MySqlRepo) GetForm(ctx context.Context, id string) (Form, error) {
 	}, nil
 }
 
-func (r *MySqlRepo) getFormBase(ctx context.Context, id string) (FormBase, error) {
+// Get the form base version by version_id
+func (r *MySqlRepo) getFormBaseVersion(ctx context.Context, version_id string) (FormBase, error) {
 	var form FormBase
 	var createdAt string
-	err := r.db.QueryRowContext(ctx, "SELECT id, version, title, created_at, created_by FROM forms WHERE id = ?", id).
-		Scan(&form.ID, &form.Version, &form.Title, &createdAt, &form.CreatedBy)
+	err := r.db.QueryRowContext(ctx, "SELECT id, version_id, version, title, created_at, created_by FROM forms WHERE version_id = ?", version_id).
+		Scan(&form.Id, &form.VersionId, &form.Version, &form.Title, &createdAt, &form.CreatedBy)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return FormBase{}, ErrNotFound
@@ -206,8 +208,10 @@ func (r *MySqlRepo) getFormBase(ctx context.Context, id string) (FormBase, error
 	return form, nil
 }
 
-func (r *MySqlRepo) GetQuestions(ctx context.Context, formID string) ([]Question, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT id, form_id, form_version, title, question_type FROM questions WHERE form_id = ? ORDER BY order_idx", formID)
+// Get all questions belonging to a form version
+// They will be returned sorted in the order they should appear in the form
+func (r *MySqlRepo) GetQuestions(ctx context.Context, formVersionId string) ([]Question, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT id, form_version_id, title, question_type FROM questions WHERE form_version_id = ? ORDER BY order_idx", formVersionId)
 	if err != nil {
 		return nil, fmt.Errorf("get questions failed: %w", err)
 	}
@@ -218,7 +222,7 @@ func (r *MySqlRepo) GetQuestions(ctx context.Context, formID string) ([]Question
 		var base QuestionBase
 		var questionType QuestionType
 		var id int64
-		if err := rows.Scan(&id, &base.FormID, &base.FormVersion, &base.Title, &questionType); err != nil {
+		if err := rows.Scan(&id, &base.FormVersionId, &base.Title, &questionType); err != nil {
 			return nil, fmt.Errorf("scan question failed: %w", err)
 		}
 
