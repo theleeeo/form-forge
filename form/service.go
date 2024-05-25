@@ -114,7 +114,7 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 //}
 
 func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
-	return s.repo.GetFormVersion(ctx, id)
+	return s.repo.GetLatestVersionOfForm(ctx, id)
 }
 
 type ListFormsParams struct {

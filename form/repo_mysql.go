@@ -142,9 +142,10 @@ func (r *MySqlRepo) insertOptions(ctx context.Context, tx *sql.Tx, questionID in
 	return nil
 }
 
+// ListForms returns a list of the latest versions all forms
 func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
 	// yes this is a very inefficient way to list forms but it works for now
-	rows, err := r.db.QueryContext(ctx, "SELECT id, version_id FROM forms ORDER BY created_at DESC")
+	rows, err := r.db.QueryContext(ctx, "SELECT version_id FROM forms GROUP BY id ORDER BY created_at DESC")
 	if err != nil {
 		return nil, fmt.Errorf("list forms failed: %w", err)
 	}
@@ -152,9 +153,8 @@ func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Fo
 
 	var forms []Form
 	for rows.Next() {
-		var id string
 		var version_id string
-		if err := rows.Scan(&id, &version_id); err != nil {
+		if err := rows.Scan(&version_id); err != nil {
 			return nil, fmt.Errorf("scan form id failed: %w", err)
 		}
 
@@ -167,6 +167,20 @@ func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Fo
 	}
 
 	return forms, nil
+}
+
+func (r *MySqlRepo) GetLatestVersionOfForm(ctx context.Context, base_id string) (Form, error) {
+	// Could be made more efficient by grabbing all the data in one query but thisis easier to maintain and the actual load will be low
+	var version_id string
+	err := r.db.QueryRowContext(ctx, "SELECT version_id FROM forms WHERE id = ? ORDER BY version DESC LIMIT 1", base_id).Scan(&version_id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Form{}, ErrNotFound
+		}
+		return Form{}, fmt.Errorf("get latest version failed: %w", err)
+	}
+
+	return r.GetFormVersion(ctx, version_id)
 }
 
 func (r *MySqlRepo) GetFormVersion(ctx context.Context, version_id string) (Form, error) {

@@ -14,7 +14,7 @@ func (t *TestSuiteRepo) TestCreateForm() {
 		lastDigit := 0
 		form.UUIDNew = func() uuid.UUID {
 			lastDigit++
-			return uuid.MustParse(fmt.Sprintf("00000000-0000-0000-0000-00000000000%d", lastDigit))
+			return uuid.MustParse(fmt.Sprintf("00000000-0000-0000-0000-%012d", lastDigit))
 		}
 
 		// Create a new form
@@ -71,7 +71,7 @@ func (t *TestSuiteRepo) TestGetForm() {
 	lastDigit := 0
 	form.UUIDNew = func() uuid.UUID {
 		lastDigit++
-		return uuid.MustParse(fmt.Sprintf("00000000-0000-0000-0000-00000000000%d", lastDigit))
+		return uuid.MustParse(fmt.Sprintf("00000000-0000-0000-0000-%012d", lastDigit))
 	}
 	// Create a new form
 	f, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
@@ -83,11 +83,10 @@ func (t *TestSuiteRepo) TestGetForm() {
 		},
 	})
 	t.NoError(err)
-	t.NoError(err)
 
 	t.Run("Get a form", func() {
 		// Get the form
-		f2, err := t.app.GetForm(context.Background(), f.VersionId)
+		f2, err := t.app.GetForm(context.Background(), f.Id)
 		t.NoError(err)
 
 		t.Equal("Test Form", f.Title)
@@ -122,5 +121,56 @@ func (t *TestSuiteRepo) TestGetForm() {
 				Options: []string{"Option 1", "Option 2"},
 			},
 		), f.Questions[2])
+	})
+}
+
+func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
+	lastTime := time.Unix(6000, 0)
+	form.TimeNow = func() time.Time {
+		lastTime = lastTime.Add(time.Second)
+		return lastTime
+	}
+	lastDigit := 0
+	form.UUIDNew = func() uuid.UUID {
+		lastDigit++
+		return uuid.MustParse(fmt.Sprintf("00000000-0000-0000-0000-%012d", lastDigit))
+	}
+	// Create a new form
+	f1, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
+		Title: "Test Form",
+		Questions: []form.CreateQuestionParams{
+			{Type: form.QuestionTypeText, Title: "TQ1"},
+			{Type: form.QuestionTypeText, Title: "TQ2"},
+		},
+	})
+	t.NoError(err)
+
+	f2, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
+		Title: "Test Form",
+		Questions: []form.CreateQuestionParams{
+			{Type: form.QuestionTypeRadio, Title: "RQ1", Options: []string{"O1"}},
+			{Type: form.QuestionTypeRadio, Title: "RQ2", Options: []string{"O1"}},
+		},
+	})
+	t.NoError(err)
+
+	f3, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
+		Title: "Test Form",
+		Questions: []form.CreateQuestionParams{
+			{Type: form.QuestionTypeCheckbox, Title: "CQ1", Options: []string{"O2"}},
+			{Type: form.QuestionTypeCheckbox, Title: "CQ2", Options: []string{"O1"}},
+		},
+	})
+	t.NoError(err)
+
+	t.Run("List forms", func() {
+		// Get the form
+		resp, err := t.app.ListForms(context.Background(), form.ListFormsParams{})
+		t.NoError(err)
+
+		t.Len(resp, 3)
+		t.Equal(f3, resp[0])
+		t.Equal(f2, resp[1])
+		t.Equal(f1, resp[2])
 	})
 }
