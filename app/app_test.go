@@ -38,16 +38,14 @@ func (t *TestSuiteRepo) TestCreateForm() {
 		t.Equal(form.Question(
 			form.TextQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: f.VersionId,
-					Title:         "Text question",
+					Title: "Text question",
 				},
 			},
 		), f.Questions[0])
 		t.Equal(form.Question(
 			form.RadioQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: f.VersionId,
-					Title:         "Radio question",
+					Title: "Radio question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -55,8 +53,7 @@ func (t *TestSuiteRepo) TestCreateForm() {
 		t.Equal(form.Question(
 			form.CheckboxQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: f.VersionId,
-					Title:         "Checkbox question",
+					Title: "Checkbox question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -98,16 +95,14 @@ func (t *TestSuiteRepo) TestGetForm() {
 		t.Equal(form.Question(
 			form.TextQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: f.VersionId,
-					Title:         "Text question",
+					Title: "Text question",
 				},
 			},
 		), f.Questions[0])
 		t.Equal(form.Question(
 			form.RadioQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: f.VersionId,
-					Title:         "Radio question",
+					Title: "Radio question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -115,8 +110,7 @@ func (t *TestSuiteRepo) TestGetForm() {
 		t.Equal(form.Question(
 			form.CheckboxQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: f.VersionId,
-					Title:         "Checkbox question",
+					Title: "Checkbox question",
 				},
 				Options: []string{"Option 1", "Option 2"},
 			},
@@ -235,8 +229,7 @@ func (t *TestSuiteRepo) Test_UpdateForms() {
 		t.Equal(form.Question(
 			form.RadioQuestion{
 				QuestionBase: form.QuestionBase{
-					FormVersionId: uf.VersionId,
-					Title:         "TQ1",
+					Title: "TQ1",
 				},
 				Options: []string{"O1"},
 			},

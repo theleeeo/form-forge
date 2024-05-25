@@ -73,7 +73,7 @@ func (r *MySqlRepo) CreateForm(ctx context.Context, form Form) error {
 		return fmt.Errorf("insert form failed: %w", err)
 	}
 
-	if err := r.insertQuestions(ctx, tx, form.Questions); err != nil {
+	if err := r.insertQuestions(ctx, tx, form.VersionId, form.Questions); err != nil {
 		if err := tx.Rollback(); err != nil {
 			log.Printf("rollback transaction failed: %v", err)
 		}
@@ -87,7 +87,7 @@ func (r *MySqlRepo) CreateForm(ctx context.Context, form Form) error {
 	return nil
 }
 
-func (r *MySqlRepo) insertQuestions(ctx context.Context, tx *sql.Tx, questions []Question) error {
+func (r *MySqlRepo) insertQuestions(ctx context.Context, tx *sql.Tx, formVersionId string, questions []Question) error {
 	for i, q := range questions {
 		questionBase := q.Question()
 		var questionType QuestionType
@@ -102,7 +102,7 @@ func (r *MySqlRepo) insertQuestions(ctx context.Context, tx *sql.Tx, questions [
 		}
 
 		result, err := tx.ExecContext(ctx, "INSERT INTO questions (form_version_id, order_idx, title, question_type) VALUES (?, ?, ?, ?)",
-			questionBase.FormVersionId, i, questionBase.Title, questionType)
+			formVersionId, i, questionBase.Title, questionType)
 		if err != nil {
 			return fmt.Errorf("insert question failed: %w", err)
 		}
@@ -220,7 +220,7 @@ func (r *MySqlRepo) getFormBaseVersion(ctx context.Context, version_id string) (
 // Get all questions belonging to a form version
 // They will be returned sorted in the order they should appear in the form
 func (r *MySqlRepo) GetQuestions(ctx context.Context, formVersionId string) ([]Question, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT id, form_version_id, title, question_type FROM questions WHERE form_version_id = ? ORDER BY order_idx", formVersionId)
+	rows, err := r.db.QueryContext(ctx, "SELECT id, title, question_type FROM questions WHERE form_version_id = ? ORDER BY order_idx", formVersionId)
 	if err != nil {
 		return nil, fmt.Errorf("get questions failed: %w", err)
 	}
@@ -231,7 +231,7 @@ func (r *MySqlRepo) GetQuestions(ctx context.Context, formVersionId string) ([]Q
 		var base QuestionBase
 		var questionType QuestionType
 		var id int64
-		if err := rows.Scan(&id, &base.FormVersionId, &base.Title, &questionType); err != nil {
+		if err := rows.Scan(&id, &base.Title, &questionType); err != nil {
 			return nil, fmt.Errorf("scan question failed: %w", err)
 		}
 

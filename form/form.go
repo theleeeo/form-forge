@@ -46,8 +46,7 @@ func constructForm(params CreateFormParams) (Form, error) {
 		var question Question
 
 		base := QuestionBase{
-			FormVersionId: form.VersionId,
-			Title:         q.Title,
+			Title: q.Title,
 		}
 
 		switch q.Type {
