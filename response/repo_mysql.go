@@ -58,8 +58,8 @@ func (r *MySqlRepo) SaveResponse(ctx context.Context, resp Response) error {
 		return fmt.Errorf("begin transaction failed: %w", err)
 	}
 
-	_, err = tx.ExecContext(ctx, "INSERT INTO responses (id, form_version_id, user_id, submitted_at) VALUES (?, ?, ?, ?)",
-		resp.Id, resp.FormVersionId, nil, resp.SubmittedAt)
+	_, err = tx.ExecContext(ctx, "INSERT INTO responses (id, form_version_id, submitted_at) VALUES (?, ?, ?)",
+		resp.Id, resp.FormVersionId, resp.SubmittedAt)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			log.Printf("rollback transaction failed: %v", err)
@@ -68,7 +68,6 @@ func (r *MySqlRepo) SaveResponse(ctx context.Context, resp Response) error {
 	}
 
 	for _, a := range resp.Answers {
-		fmt.Printf("Saving answer: %v\n", a)
 		if err := r.saveAnswer(ctx, tx, resp.Id, a); err != nil {
 			if err := tx.Rollback(); err != nil {
 				log.Printf("rollback transaction failed: %v", err)

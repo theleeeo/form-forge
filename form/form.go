@@ -12,7 +12,6 @@ type FormBase struct {
 
 	Title     string
 	CreatedAt time.Time
-	CreatedBy string
 }
 
 type Form struct {

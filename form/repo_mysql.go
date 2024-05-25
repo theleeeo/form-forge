@@ -64,8 +64,8 @@ func (r *MySqlRepo) CreateForm(ctx context.Context, form Form) error {
 		return fmt.Errorf("begin transaction failed: %w", err)
 	}
 
-	_, err = tx.ExecContext(ctx, "INSERT INTO forms (id, version_id, version, title, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)",
-		form.Id, form.VersionId, form.Version, form.Title, form.CreatedAt, form.CreatedBy)
+	_, err = tx.ExecContext(ctx, "INSERT INTO forms (id, version_id, version, title, created_at) VALUES (?, ?, ?, ?, ?)",
+		form.Id, form.VersionId, form.Version, form.Title, form.CreatedAt)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			log.Printf("rollback transaction failed: %v", err)
@@ -225,8 +225,8 @@ func (r *MySqlRepo) getFormVersion(ctx context.Context, version_id string) (Form
 func (r *MySqlRepo) getFormBaseVersion(ctx context.Context, version_id string) (FormBase, error) {
 	var form FormBase
 	var createdAt string
-	err := r.db.QueryRowContext(ctx, "SELECT id, version_id, version, title, created_at, created_by FROM forms WHERE version_id = ?", version_id).
-		Scan(&form.Id, &form.VersionId, &form.Version, &form.Title, &createdAt, &form.CreatedBy)
+	err := r.db.QueryRowContext(ctx, "SELECT id, version_id, version, title, created_at FROM forms WHERE version_id = ?", version_id).
+		Scan(&form.Id, &form.VersionId, &form.Version, &form.Title, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return FormBase{}, ErrNotFound

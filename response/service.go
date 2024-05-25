@@ -61,6 +61,10 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 		var answer Answer
 		switch formData.Questions[questionOrder].Type {
 		case form.QuestionTypeText:
+			if len(a) > 1 {
+				return Response{}, fmt.Errorf("text answer %s has more than one value", q)
+			}
+
 			answer = TextAnswer{
 				AnswerBase: base,
 				Value:      a[0],
@@ -68,7 +72,7 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 
 		case form.QuestionTypeRadio:
 			if len(a) > 1 {
-				return Response{}, fmt.Errorf("answer %s has more than one value", q)
+				return Response{}, fmt.Errorf("radio answer %s has more than one value", q)
 			}
 
 			value, err := strconv.Atoi(a[0])

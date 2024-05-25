@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/theleeeo/form-forge/form"
+	"github.com/theleeeo/form-forge/response"
 )
 
 const (
@@ -34,13 +35,19 @@ func (t *TestSuiteRepo) SetupSuite() {
 	t.db = db
 	t.stopFunc = stopFunc
 
-	repo, err := form.NewMySql(nil, db)
+	formRepo, err := form.NewMySql(nil, db)
 	if err != nil {
 		t.T().Fatal(err)
 	}
 
-	formService := form.NewService(repo)
-	t.app = New(formService, nil)
+	responseRepo, err := response.NewMySql(nil, db)
+	if err != nil {
+		t.T().Fatal(err)
+	}
+
+	formService := form.NewService(formRepo)
+	responseService := response.NewService(responseRepo)
+	t.app = New(formService, responseService)
 }
 
 func (t *TestSuiteRepo) TearDownAllSuite() {
