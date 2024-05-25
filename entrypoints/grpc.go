@@ -3,7 +3,6 @@ package entrypoints
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/app"
@@ -27,12 +26,7 @@ type formGrpcServer struct {
 }
 
 func (g *formGrpcServer) Create(ctx context.Context, params *form_api.CreateRequest) (*form_api.CreateResponse, error) {
-	p, err := convertCreateFormParams(params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse parameters: %w", err)
-	}
-
-	resp, err := g.app.CreateNewForm(ctx, p)
+	resp, err := g.app.CreateNewForm(ctx, convertCreateFormParams(params))
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +67,7 @@ func (g *formGrpcServer) List(ctx context.Context, params *form_api.ListRequest)
 }
 
 func (g *formGrpcServer) Update(ctx context.Context, params *form_api.UpdateRequest) (*form_api.UpdateResponse, error) {
-	p, err := convertUpdateFormParams(params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse parameters: %w", err)
-	}
-
-	resp, err := g.app.UpdateForm(ctx, p)
+	resp, err := g.app.UpdateForm(ctx, convertUpdateFormParams(params))
 	if err != nil {
 		if errors.Is(err, app.ErrFormNotFound) {
 			return nil, status.Errorf(codes.NotFound, "form not found")

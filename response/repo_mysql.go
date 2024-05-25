@@ -68,6 +68,7 @@ func (r *MySqlRepo) SaveResponse(ctx context.Context, resp Response) error {
 	}
 
 	for _, a := range resp.Answers {
+		fmt.Printf("Saving answer: %v\n", a)
 		if err := r.saveAnswer(ctx, tx, resp.Id, a); err != nil {
 			if err := tx.Rollback(); err != nil {
 				log.Printf("rollback transaction failed: %v", err)

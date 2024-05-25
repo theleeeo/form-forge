@@ -36,7 +36,7 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 	r := Response{
 		Id:            uuid.NewString(),
 		FormVersionId: formData.VersionId,
-		Answers:       make([]Answer, len(resp)),
+		Answers:       make([]Answer, len(formData.Questions)),
 		SubmittedAt:   time.Now().UTC(),
 	}
 

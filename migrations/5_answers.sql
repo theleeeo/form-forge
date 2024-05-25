@@ -7,6 +7,5 @@ CREATE TABLE IF NOT EXISTS answers (
     -- The answer to the question. The type of this field depends on the question type
     -- For example, a multiple choice question would have the option number here
     answer_text TEXT,
-    FOREIGN KEY (response_id) REFERENCES responses(id) ON DELETE CASCADE,
-    PRIMARY KEY (response_id, question_order)
+    FOREIGN KEY (response_id) REFERENCES responses(id) ON DELETE CASCADE
 );

@@ -8,55 +8,47 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func convertUpdateFormParams(params *form_api.UpdateRequest) (form.UpdateFormParams, error) {
-	createParams, err := convertCreateFormParams(params.NewForm)
-	if err != nil {
-		return form.UpdateFormParams{}, err
-	}
-
+func convertUpdateFormParams(params *form_api.UpdateRequest) form.UpdateFormParams {
 	return form.UpdateFormParams{
 		Id:               params.Id,
-		CreateFormParams: createParams,
-	}, nil
+		CreateFormParams: convertCreateFormParams(params.NewForm),
+	}
 }
 
-func convertCreateFormParams(params *form_api.CreateRequest) (form.CreateFormParams, error) {
+func convertCreateFormParams(params *form_api.CreateRequest) form.CreateFormParams {
 	qs := make([]form.CreateQuestionParams, len(params.Questions))
 	for i, q := range params.Questions {
-		if q.Type == form_api.Question_TYPE_TEXT {
-			q.Options = nil
-		} else if len(q.Options) == 0 {
-			return form.CreateFormParams{}, fmt.Errorf("question options must not be empty for question type %s", q.Type.String())
-		}
-
-		t, err := convertQuestionType(q.Type)
-		if err != nil {
-			return form.CreateFormParams{}, err
-		}
-
-		qs[i] = form.CreateQuestionParams{
-			Type:    t,
-			Title:   q.Title,
-			Options: q.Options,
-		}
+		qs[i] = convertCreateQuestionParams(q)
 	}
 
 	return form.CreateFormParams{
 		Title:     params.Title,
 		Questions: qs,
-	}, nil
+	}
 }
 
-func convertQuestionType(t form_api.Question_Type) (form.QuestionType, error) {
-	switch t {
-	case form_api.Question_TYPE_TEXT:
-		return form.QuestionTypeText, nil
-	case form_api.Question_TYPE_RADIO:
-		return form.QuestionTypeRadio, nil
-	case form_api.Question_TYPE_CHECKBOX:
-		return form.QuestionTypeCheckbox, nil
+func convertCreateQuestionParams(qp *form_api.CreateQuestionParameters) form.CreateQuestionParams {
+	switch q := qp.Question.(type) {
+	case *form_api.CreateQuestionParameters_Text:
+		return form.CreateQuestionParams{
+			Type:  form.QuestionTypeText,
+			Title: q.Text.Title,
+		}
+	case *form_api.CreateQuestionParameters_Radio:
+		return form.CreateQuestionParams{
+			Type:    form.QuestionTypeRadio,
+			Title:   q.Radio.Title,
+			Options: q.Radio.Options,
+		}
+	case *form_api.CreateQuestionParameters_Checkbox:
+		return form.CreateQuestionParams{
+			Type:    form.QuestionTypeCheckbox,
+			Title:   q.Checkbox.Title,
+			Options: q.Checkbox.Options,
+		}
 	default:
-		return form.QuestionType(-1), fmt.Errorf("invalid question type: %s", t.String())
+		// This should never happen
+		panic(fmt.Sprintf("unhandled question type: %T", q))
 	}
 }
 
@@ -76,34 +68,38 @@ func convertForm(f form.Form) *form_api.Form {
 }
 
 func convertQuestionToProto(q form.Question) *form_api.Question {
-	base := q.Question()
-
-	var questionType form_api.Question_Type
-
-	switch q.(type) {
+	switch q := q.(type) {
 	case form.TextQuestion:
-		questionType = form_api.Question_TYPE_TEXT
+		return &form_api.Question{
+			Question: &form_api.Question_Text{
+				Text: &form_api.TextQuestion{
+					Title: q.Question().Title,
+				},
+			},
+		}
+
 	case form.RadioQuestion:
-		questionType = form_api.Question_TYPE_RADIO
+		return &form_api.Question{
+			Question: &form_api.Question_Radio{
+				Radio: &form_api.RadioQuestion{
+					Title:   q.Question().Title,
+					Options: q.Options,
+				},
+			},
+		}
+
 	case form.CheckboxQuestion:
-		questionType = form_api.Question_TYPE_CHECKBOX
+		return &form_api.Question{
+			Question: &form_api.Question_Checkbox{
+				Checkbox: &form_api.CheckboxQuestion{
+					Title:   q.Question().Title,
+					Options: q.Options,
+				},
+			},
+		}
+
 	default:
 		// This should never happen
 		panic(fmt.Sprintf("unhandled question type: %T", q))
 	}
-
-	var options []string
-	switch q := q.(type) {
-	case form.RadioQuestion:
-		options = q.Options
-	case form.CheckboxQuestion:
-		options = q.Options
-	}
-
-	qp := &form_api.Question{
-		Title:   base.Title,
-		Type:    questionType,
-		Options: options,
-	}
-	return qp
 }

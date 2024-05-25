@@ -15,16 +15,23 @@ message Form {
 }
 
 message Question {
-  string title = 1;
-  Type type = 2;
-  repeated string options = 3;
-
-  enum Type {
-    TYPE_UNSPECIFIED = 0;
-    TYPE_TEXT = 1;
-    TYPE_RADIO = 2;
-    TYPE_CHECKBOX = 3;
+  oneof question {
+    TextQuestion text = 1;
+    RadioQuestion radio = 2;
+    CheckboxQuestion checkbox = 3;
   }
+}
+
+message TextQuestion { string title = 1; }
+
+message RadioQuestion {
+  string title = 1;
+  repeated string options = 2;
+}
+
+message CheckboxQuestion {
+  string title = 1;
+  repeated string options = 2;
 }
 
 service FormService {
@@ -55,9 +62,23 @@ message CreateRequest {
 message CreateResponse { Form form = 1; }
 
 message CreateQuestionParameters {
+  oneof question {
+    CreateTextQuestionParameters text = 1;
+    CreateRadioQuestionParameters radio = 2;
+    CreateCheckboxQuestionParameters checkbox = 3;
+  }
+}
+
+message CreateTextQuestionParameters { string title = 1; }
+
+message CreateRadioQuestionParameters {
   string title = 1;
-  Question.Type type = 2;
-  repeated string options = 3;
+  repeated string options = 2;
+}
+
+message CreateCheckboxQuestionParameters {
+  string title = 1;
+  repeated string options = 2;
 }
 
 message ListRequest {}
