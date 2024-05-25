@@ -9,7 +9,7 @@ import (
 	"github.com/theleeeo/form-forge/form"
 )
 
-func (t *TestSuiteRepo) TestCreateForm() {
+func (t *TestSuiteRepo) Test_CreateForm() {
 	t.Run("Create a new form", func() {
 		lastDigit := 0
 		form.UUIDNew = func() uuid.UUID {
@@ -61,7 +61,7 @@ func (t *TestSuiteRepo) TestCreateForm() {
 	})
 }
 
-func (t *TestSuiteRepo) TestGetForm() {
+func (t *TestSuiteRepo) Test_GetForm() {
 	form.TimeNow = func() time.Time {
 		return time.Unix(6000, 0)
 	}
@@ -118,7 +118,7 @@ func (t *TestSuiteRepo) TestGetForm() {
 	})
 }
 
-func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
+func (t *TestSuiteRepo) Test_ListForms() {
 	lastTime := time.Unix(6000, 0)
 	form.TimeNow = func() time.Time {
 		lastTime = lastTime.Add(time.Second)
@@ -131,7 +131,7 @@ func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
 	}
 	// Create a new form
 	f1, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
-		Title: "Test Form",
+		Title: "Form 1",
 		Questions: []form.CreateQuestionParams{
 			{Type: form.QuestionTypeText, Title: "TQ1"},
 			{Type: form.QuestionTypeText, Title: "TQ2"},
@@ -140,7 +140,7 @@ func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
 	t.NoError(err)
 
 	f2, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
-		Title: "Test Form",
+		Title: "Form 2",
 		Questions: []form.CreateQuestionParams{
 			{Type: form.QuestionTypeRadio, Title: "RQ1", Options: []string{"O1"}},
 			{Type: form.QuestionTypeRadio, Title: "RQ2", Options: []string{"O1"}},
@@ -149,7 +149,7 @@ func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
 	t.NoError(err)
 
 	f3, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
-		Title: "Test Form",
+		Title: "Form 3",
 		Questions: []form.CreateQuestionParams{
 			{Type: form.QuestionTypeCheckbox, Title: "CQ1", Options: []string{"O2"}},
 			{Type: form.QuestionTypeCheckbox, Title: "CQ2", Options: []string{"O1"}},
@@ -157,7 +157,7 @@ func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
 	})
 	t.NoError(err)
 
-	t.Run("List forms", func() {
+	t.Run("Only base forms", func() {
 		// Get the form
 		resp, err := t.app.ListForms(context.Background(), form.ListFormsParams{})
 		t.NoError(err)
@@ -165,6 +165,29 @@ func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
 		t.Len(resp, 3)
 		t.Equal(f3, resp[0])
 		t.Equal(f2, resp[1])
+		t.Equal(f1, resp[2])
+	})
+
+	uf, err := t.app.UpdateForm(context.Background(), form.UpdateFormParams{
+		Id: f2.Id,
+		CreateFormParams: form.CreateFormParams{
+			Title: "Updated form",
+			Questions: []form.CreateQuestionParams{
+				{Type: form.QuestionTypeCheckbox, Title: "CQ1", Options: []string{"O2"}},
+				{Type: form.QuestionTypeCheckbox, Title: "CQ2", Options: []string{"O1"}},
+			},
+		},
+	})
+	t.NoError(err)
+
+	t.Run("One updated form", func() {
+		// Get the form
+		resp, err := t.app.ListForms(context.Background(), form.ListFormsParams{})
+		t.NoError(err)
+
+		t.Len(resp, 3)
+		t.Equal(uf, resp[0])
+		t.Equal(f3, resp[1])
 		t.Equal(f1, resp[2])
 	})
 }

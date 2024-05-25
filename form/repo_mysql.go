@@ -140,7 +140,15 @@ func (r *MySqlRepo) insertOptions(ctx context.Context, tx *sql.Tx, questionID in
 // ListForms returns a list of the latest versions all forms
 func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
 	// yes this is a very inefficient way to list forms but it works for now
-	rows, err := r.db.QueryContext(ctx, "SELECT version_id FROM forms GROUP BY id ORDER BY created_at DESC")
+	rows, err := r.db.QueryContext(ctx, `SELECT f.version_id
+	FROM forms f
+	INNER JOIN (
+		SELECT id, MAX(version) AS max_version
+		FROM forms
+		GROUP BY id
+	) latest_versions ON f.id = latest_versions.id AND f.version = latest_versions.max_version
+	ORDER BY f.created_at DESC;
+	`)
 	if err != nil {
 		return nil, fmt.Errorf("list forms failed: %w", err)
 	}
@@ -164,10 +172,27 @@ func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Fo
 	return forms, nil
 }
 
-func (r *MySqlRepo) GetLatestVersionOfForm(ctx context.Context, base_id string) (Form, error) {
-	// Could be made more efficient by grabbing all the data in one query but thisis easier to maintain and the actual load will be low
+// Get the latest version of a form from a form id
+// The id has to be that of the form itself, not a specific version_id
+func (r *MySqlRepo) GetLatestVersionOfForm(ctx context.Context, form_id string) (Form, error) {
+	// Could be made more efficient by fetching the entirety of the form_base in this query.
+	// Then all questions for all of those forms could be fetched in a single query, something like the following:
+	//  SELECT q.*
+	//  FROM questions q
+	//  INNER JOIN (
+	//    SELECT v.id, v.version_id
+	//    FROM forms v
+	//    INNER JOIN (
+	//      SELECT id, MAX(version) AS max_version
+	//      FROM forms
+	//      GROUP BY id
+	//    ) latest_versions ON v.id = latest_versions.id AND v.version = latest_versions.max_version
+	//  ) latest_forms ON q.form_version_id = latest_forms.version_id;
+
+	// But this inefficient solution works for now
+
 	var version_id string
-	err := r.db.QueryRowContext(ctx, "SELECT version_id FROM forms WHERE id = ? ORDER BY version DESC LIMIT 1", base_id).Scan(&version_id)
+	err := r.db.QueryRowContext(ctx, "SELECT version_id FROM forms WHERE id = ? ORDER BY version DESC LIMIT 1", form_id).Scan(&version_id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Form{}, ErrNotFound
@@ -178,6 +203,7 @@ func (r *MySqlRepo) GetLatestVersionOfForm(ctx context.Context, base_id string) 
 	return r.getFormVersion(ctx, version_id)
 }
 
+// Get the entire form of a specific version
 func (r *MySqlRepo) getFormVersion(ctx context.Context, version_id string) (Form, error) {
 	formBase, err := r.getFormBaseVersion(ctx, version_id)
 	if err != nil {
@@ -195,7 +221,7 @@ func (r *MySqlRepo) getFormVersion(ctx context.Context, version_id string) (Form
 	}, nil
 }
 
-// Get the form base version by version_id
+// Get the FormBase (just the form info, not the questions) for a specific version
 func (r *MySqlRepo) getFormBaseVersion(ctx context.Context, version_id string) (FormBase, error) {
 	var form FormBase
 	var createdAt string
