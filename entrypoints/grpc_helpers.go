@@ -8,6 +8,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func convertUpdateFormParams(params *form_api.UpdateRequest) (form.UpdateFormParams, error) {
+	createParams, err := convertCreateFormParams(params.NewForm)
+	if err != nil {
+		return form.UpdateFormParams{}, err
+	}
+
+	return form.UpdateFormParams{
+		Id:               params.Id,
+		CreateFormParams: createParams,
+	}, nil
+}
+
 func convertCreateFormParams(params *form_api.CreateRequest) (form.CreateFormParams, error) {
 	qs := make([]form.CreateQuestionParams, len(params.Questions))
 	for i, q := range params.Questions {

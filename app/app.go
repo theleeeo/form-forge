@@ -31,19 +31,6 @@ func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (
 	return a.formService.CreateNewForm(ctx, params)
 }
 
-// func (a *App) GetFormBase(ctx context.Context, id string) (form.FormBase, error) {
-// 	f, err := a.formService.GetFormBase(ctx, id)
-// 	if err != nil {
-// 		if errors.Is(err, form.ErrNotFound) {
-// 			return form.FormBase{}, ErrFormNotFound
-// 		}
-
-// 		return form.FormBase{}, err
-// 	}
-
-// 	return f, nil
-// }
-
 func (a *App) ListForms(ctx context.Context, params form.ListFormsParams) ([]form.Form, error) {
 	f, err := a.formService.ListForms(ctx, params)
 	if err != nil {
@@ -101,8 +88,8 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 
 func (a *App) convertToFormData(f form.Form) response.FormData {
 	formData := response.FormData{
-		Id:      f.Id,
-		Version: f.Version,
+		Id:        f.Id,
+		VersionId: f.VersionId,
 	}
 
 	for i, q := range f.Questions {
@@ -128,4 +115,16 @@ func (a *App) convertToFormData(f form.Form) response.FormData {
 	}
 
 	return formData
+}
+
+func (a *App) UpdateForm(ctx context.Context, params form.UpdateFormParams) (form.Form, error) {
+	f, err := a.formService.UpdateForm(ctx, params)
+	if err != nil {
+		if errors.Is(err, form.ErrNotFound) {
+			return form.Form{}, ErrFormNotFound
+		}
+		return form.Form{}, err
+	}
+
+	return f, nil
 }

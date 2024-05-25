@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/theleeeo/form-forge/form"
@@ -21,7 +22,7 @@ type Service struct {
 
 type FormData struct {
 	Id        string
-	Version   uint32
+	VersionId string
 	Questions []QuestionData
 }
 
@@ -33,10 +34,10 @@ type QuestionData struct {
 
 func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Response, error) {
 	r := Response{
-		Id:          uuid.NewString(),
-		FormId:      formData.Id,
-		FormVersion: formData.Version,
-		Answers:     make([]Answer, len(resp)),
+		Id:            uuid.NewString(),
+		FormVersionId: formData.VersionId,
+		Answers:       make([]Answer, len(resp)),
+		SubmittedAt:   time.Now().UTC(),
 	}
 
 	for q, a := range resp {

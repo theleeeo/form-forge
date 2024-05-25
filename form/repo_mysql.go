@@ -15,11 +15,6 @@ const (
 	timeFormat = "2006-01-02 15:04:05"
 )
 
-var (
-	// ErrNotFound is returned when the requested resource is not found.
-	ErrNotFound = errors.New("not found")
-)
-
 type MySqlConfig struct {
 	Address  string `yaml:"address"`
 	User     string `yaml:"user"`
@@ -158,7 +153,7 @@ func (r *MySqlRepo) ListForms(ctx context.Context, params ListFormsParams) ([]Fo
 			return nil, fmt.Errorf("scan form id failed: %w", err)
 		}
 
-		form, err := r.GetFormVersion(ctx, version_id)
+		form, err := r.getFormVersion(ctx, version_id)
 		if err != nil {
 			return nil, fmt.Errorf("get form failed: %w", err)
 		}
@@ -180,10 +175,10 @@ func (r *MySqlRepo) GetLatestVersionOfForm(ctx context.Context, base_id string) 
 		return Form{}, fmt.Errorf("get latest version failed: %w", err)
 	}
 
-	return r.GetFormVersion(ctx, version_id)
+	return r.getFormVersion(ctx, version_id)
 }
 
-func (r *MySqlRepo) GetFormVersion(ctx context.Context, version_id string) (Form, error) {
+func (r *MySqlRepo) getFormVersion(ctx context.Context, version_id string) (Form, error) {
 	formBase, err := r.getFormBaseVersion(ctx, version_id)
 	if err != nil {
 		return Form{}, err

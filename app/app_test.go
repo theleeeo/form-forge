@@ -174,3 +174,72 @@ func (t *TestSuiteRepo) Test_ListForms_OnlyBaseForms() {
 		t.Equal(f1, resp[2])
 	})
 }
+
+func (t *TestSuiteRepo) Test_UpdateForms() {
+	lastTime := time.Unix(6000, 0)
+	form.TimeNow = func() time.Time {
+		lastTime = lastTime.Add(time.Second)
+		return lastTime
+	}
+
+	f1, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
+		Title: "Test Form",
+		Questions: []form.CreateQuestionParams{
+			{Type: form.QuestionTypeText, Title: "TQ1"},
+			{Type: form.QuestionTypeText, Title: "TQ2"},
+		},
+	})
+	t.NoError(err)
+
+	_, err = t.app.CreateNewForm(context.Background(), form.CreateFormParams{
+		Title: "Test Form",
+		Questions: []form.CreateQuestionParams{
+			{Type: form.QuestionTypeRadio, Title: "RQ1", Options: []string{"O1"}},
+			{Type: form.QuestionTypeRadio, Title: "RQ2", Options: []string{"O1"}},
+		},
+	})
+	t.NoError(err)
+
+	t.Run("Form not found", func() {
+		_, err := t.app.UpdateForm(context.Background(), form.UpdateFormParams{
+			Id: "00000000-0000-1234-0000-000000000000",
+			CreateFormParams: form.CreateFormParams{
+				Title: "Test Form",
+				Questions: []form.CreateQuestionParams{
+					{Type: form.QuestionTypeText, Title: "TQ1"},
+					{Type: form.QuestionTypeText, Title: "TQ2"},
+				},
+			},
+		})
+		t.Error(err)
+		t.ErrorIs(err, ErrFormNotFound)
+	})
+
+	t.Run("Update successful", func() {
+		uf, err := t.app.UpdateForm(context.Background(), form.UpdateFormParams{
+			Id: f1.Id,
+			CreateFormParams: form.CreateFormParams{
+				Title: "Test Form 2",
+				Questions: []form.CreateQuestionParams{
+					{Type: form.QuestionTypeRadio, Title: "TQ1", Options: []string{"O1"}},
+				},
+			},
+		})
+		t.NoError(err)
+
+		t.Equal("Test Form 2", uf.Title)
+		t.Equal(uint32(2), uf.Version)
+		t.Equal(f1.Id, uf.Id)
+		uuid.MustParse(uf.VersionId)
+		t.Len(uf.Questions, 1)
+		t.Equal(form.Question(
+			form.RadioQuestion{
+				QuestionBase: form.QuestionBase{
+					FormVersionId: uf.VersionId,
+					Title:         "TQ1",
+				},
+				Options: []string{"O1"},
+			},
+		), uf.Questions[0])
+	})
+}

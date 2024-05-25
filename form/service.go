@@ -2,6 +2,7 @@ package form
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,11 @@ var (
 	// These variables are used to make the code testable
 	UUIDNew = uuid.New
 	TimeNow = time.Now
+)
+
+var (
+	ErrNotFound = errors.New("not found")
+	ErrBadArgs  = errors.New("bad arguments")
 )
 
 func NewService(repo *MySqlRepo) *Service {
@@ -37,71 +43,12 @@ type CreateQuestionParams struct {
 }
 
 func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (Form, error) {
-	if params.Title == "" {
-		return Form{}, fmt.Errorf("title is required")
+	form, err := constructForm(params)
+	if err != nil {
+		return Form{}, err
 	}
 
-	if len(params.Questions) == 0 {
-		return Form{}, fmt.Errorf("questions are required")
-	}
-
-	id := UUIDNew().String()
-	versionId := UUIDNew().String()
-	form := Form{
-		FormBase: FormBase{
-			Id:        id,
-			VersionId: versionId,
-			Version:   1,
-			Title:     params.Title,
-			CreatedAt: TimeNow().UTC(),
-		},
-	}
-
-	questions := make([]Question, 0, len(params.Questions))
-	for _, q := range params.Questions {
-		var question Question
-
-		base := QuestionBase{
-			FormVersionId: form.VersionId,
-			Title:         q.Title,
-		}
-
-		switch q.Type {
-		case QuestionTypeText:
-			question = TextQuestion{
-				QuestionBase: base,
-			}
-		case QuestionTypeRadio:
-			if len(q.Options) == 0 {
-				return Form{}, fmt.Errorf("options are required for radio questions")
-			}
-
-			question = RadioQuestion{
-				QuestionBase: base,
-				Options:      q.Options,
-			}
-		case QuestionTypeCheckbox:
-			if len(q.Options) == 0 {
-				return Form{}, fmt.Errorf("options are required for checkbox questions")
-			}
-
-			question = CheckboxQuestion{
-				QuestionBase: base,
-				Options:      q.Options,
-			}
-		default:
-			return Form{}, fmt.Errorf("invalid question type: %d", q.Type)
-		}
-
-		questions = append(questions, question)
-
-		if err := question.Validate(); err != nil {
-			return Form{}, fmt.Errorf("question validation failed: %w", err)
-		}
-	}
-	form.Questions = questions
-
-	err := s.repo.CreateForm(ctx, form)
+	err = s.repo.CreateForm(ctx, form)
 	if err != nil {
 		return Form{}, err
 	}
@@ -109,11 +56,10 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 	return form, nil
 }
 
-// func (s *Service) GetFormBase(ctx context.Context, id string) (FormBase, error) {
-// 	return s.repo.getFormBase(ctx, id)
-//}
-
 func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
+	if id == "" {
+		return Form{}, fmt.Errorf("id is required")
+	}
 	return s.repo.GetLatestVersionOfForm(ctx, id)
 }
 
@@ -122,4 +68,25 @@ type ListFormsParams struct {
 
 func (s *Service) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
 	return s.repo.ListForms(ctx, params)
+}
+
+type UpdateFormParams struct {
+	Id string
+	CreateFormParams
+}
+
+func (s *Service) UpdateForm(ctx context.Context, params UpdateFormParams) (Form, error) {
+	baseForm, err := s.GetForm(ctx, params.Id)
+	if err != nil {
+		return Form{}, fmt.Errorf("failed to get form: %w", err)
+	}
+
+	form, err := constructForm(params.CreateFormParams)
+	if err != nil {
+		return Form{}, err
+	}
+	form.Id = params.Id
+	form.Version = baseForm.Version + 1
+
+	return form, s.repo.CreateForm(ctx, form)
 }

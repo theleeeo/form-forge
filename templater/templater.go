@@ -37,7 +37,7 @@ type expandedOption struct {
 	Order int
 }
 
-func ResolveForm(ctx context.Context, f form.Form) (expandedForm, error) {
+func constructExpandedForm(f form.Form) expandedForm {
 	questions := make([]expandedQuestion, 0, len(f.Questions))
 	for questionOrder, q := range f.Questions {
 		questionBase := q.Question()
@@ -75,20 +75,15 @@ func ResolveForm(ctx context.Context, f form.Form) (expandedForm, error) {
 		ID:        f.Id,
 		Title:     f.Title,
 		Questions: questions,
-	}, nil
+	}
 }
 
 func (t *Templater) Generate(ctx context.Context, f form.Form) ([]byte, error) {
 	template := template.Must(template.New("test").ParseFiles("templates/test.html"))
 	template = template.Lookup("test.html")
 
-	fr, err := ResolveForm(ctx, f)
-	if err != nil {
-		return nil, err
-	}
-
 	var tpl bytes.Buffer
-	if err := template.Execute(&tpl, fr); err != nil {
+	if err := template.Execute(&tpl, constructExpandedForm(f)); err != nil {
 		return nil, err
 	}
 

@@ -5,9 +5,8 @@ import "time"
 type Response struct {
 	// ID is the unique identifier of the response.
 	Id string
-	// FormId is the ID of the form this response is for.
-	FormId      string
-	FormVersion uint32
+	// FormId is the unique identifier of the form this response is for.
+	FormVersionId string
 
 	// Answers is the list of answers to the questions in the form.
 	Answers []Answer

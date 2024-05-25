@@ -2,6 +2,7 @@ package entrypoints
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
@@ -72,5 +73,21 @@ func (g *formGrpcServer) List(ctx context.Context, params *form_api.ListRequest)
 }
 
 func (g *formGrpcServer) Update(ctx context.Context, params *form_api.UpdateRequest) (*form_api.UpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+	p, err := convertUpdateFormParams(params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse parameters: %w", err)
+	}
+
+	resp, err := g.app.UpdateForm(ctx, p)
+	if err != nil {
+		if errors.Is(err, app.ErrFormNotFound) {
+			return nil, status.Errorf(codes.NotFound, "form not found")
+		}
+
+		return nil, err
+	}
+
+	return &form_api.UpdateResponse{
+		Form: convertForm(resp),
+	}, nil
 }
