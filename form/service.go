@@ -31,8 +31,9 @@ type Service struct {
 }
 
 type CreateFormParams struct {
-	Title     string
-	Questions []CreateQuestionParams
+	Title       string
+	Description string
+	Questions   []CreateQuestionParams
 }
 
 type CreateQuestionParams struct {

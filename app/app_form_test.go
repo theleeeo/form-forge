@@ -19,7 +19,8 @@ func (t *TestSuiteRepo) Test_CreateForm() {
 
 		// Create a new form
 		f, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
-			Title: "Test Form",
+			Title:       "Test Form",
+			Description: "This is a test form",
 			Questions: []form.CreateQuestionParams{
 				{Type: form.QuestionTypeText, Title: "Text question"},
 				{Type: form.QuestionTypeRadio, Title: "Radio question", Options: []string{"Option 1", "Option 2"}},
@@ -31,6 +32,7 @@ func (t *TestSuiteRepo) Test_CreateForm() {
 		t.NotNil(f)
 
 		t.Equal("Test Form", f.Title)
+		t.Equal("This is a test form", f.Description)
 		t.Equal(uint32(1), f.Version)
 		t.Equal(f.Id, "00000000-0000-0000-0000-000000000001")
 		t.Equal(f.VersionId, "00000000-0000-0000-0000-000000000002")

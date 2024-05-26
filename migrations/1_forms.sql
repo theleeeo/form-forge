@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS forms (
     -- The version of the form, incremented when the form is updated
     version INT NOT NULL DEFAULT 1,
     title VARCHAR(255),
+    description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (version_id),
     UNIQUE (id, version)

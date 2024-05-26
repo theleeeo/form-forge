@@ -10,8 +10,9 @@ type FormBase struct {
 	VersionId string
 	Version   uint32
 
-	Title     string
-	CreatedAt time.Time
+	Title       string
+	Description string
+	CreatedAt   time.Time
 }
 
 type Form struct {
@@ -32,11 +33,12 @@ func constructForm(params CreateFormParams) (Form, error) {
 	versionId := UUIDNew().String()
 	form := Form{
 		FormBase: FormBase{
-			Id:        id,
-			VersionId: versionId,
-			Version:   1,
-			Title:     params.Title,
-			CreatedAt: TimeNow().UTC(),
+			Id:          id,
+			VersionId:   versionId,
+			Version:     1,
+			Title:       params.Title,
+			Description: params.Description,
+			CreatedAt:   TimeNow().UTC(),
 		},
 	}
 

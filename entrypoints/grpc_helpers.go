@@ -22,8 +22,9 @@ func convertCreateFormParams(params *form_api.CreateRequest) form.CreateFormPara
 	}
 
 	return form.CreateFormParams{
-		Title:     params.Title,
-		Questions: qs,
+		Title:       params.Title,
+		Description: params.Description,
+		Questions:   qs,
 	}
 }
 

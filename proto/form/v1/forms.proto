@@ -10,8 +10,9 @@ message Form {
   string id = 1;
   uint32 version = 2;
   string title = 3;
-  repeated Question questions = 4;
-  google.protobuf.Timestamp created_at = 5;
+  string description = 4;
+  repeated Question questions = 5;
+  google.protobuf.Timestamp created_at = 6;
 }
 
 message Question {
@@ -56,7 +57,8 @@ message GetByIdResponse { Form form = 1; }
 
 message CreateRequest {
   string title = 1;
-  repeated CreateQuestionParameters questions = 2;
+  string description = 2;
+  repeated CreateQuestionParameters questions = 3;
 }
 
 message CreateResponse { Form form = 1; }
