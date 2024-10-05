@@ -1,20 +1,18 @@
 package cmd
 
 import (
-	"log"
-	"os"
-	"path/filepath"
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/theleeeo/form-forge/runner"
 )
 
 var cfgFile string
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is ~/.cfg.yml)")
 
 	rootCmd.AddCommand(startCmd)
@@ -33,33 +31,43 @@ var rootCmd = &cobra.Command{
 	Short: "A Form Service",
 }
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
+func loadConfig() (runner.Config, error) {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
-		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal("Could not read config file, error:", err)
-		}
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal("Could not find home directory, error:", err)
+		viper.SetConfigName("cfg")
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("$HOME/.formforge")
+		viper.AddConfigPath("/etc/formforge/")
+	}
+
+	if err := viper.ReadInConfig(); err != nil {
+		var notFoundErr viper.ConfigFileNotFoundError
+		if errors.As(err, &notFoundErr) {
+			return runner.Config{}, errors.New("config file not found")
 		}
 
-		// check if the config file exists
-		_, err = os.Stat(filepath.Join(home, ".thor.yml"))
-		if err == nil {
-			viper.AddConfigPath(home)
-			viper.SetConfigType("yml")
-			viper.SetConfigName(".thor")
-
-			if err := viper.ReadInConfig(); err != nil {
-				log.Fatal("Could not read config file, error:", err)
-			}
-		}
+		return runner.Config{}, fmt.Errorf("error reading config file: %w", err)
 	}
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.AutomaticEnv()
+
+	cfg := runner.Config{
+		GrpcAddress: viper.GetString("grpc-address"),
+		HttpAddress: viper.GetString("http-address"),
+		RepoCfg: runner.PgConfig{
+			Host:     viper.GetString("repo.host"),
+			Port:     viper.GetInt("repo.port"),
+			User:     viper.GetString("repo.user"),
+			Password: viper.GetString("repo.password"),
+			Database: viper.GetString("repo.database"),
+		},
+	}
+
+	if err := cfg.Validate(); err != nil {
+		return runner.Config{}, fmt.Errorf("config validation failed: %w", err)
+	}
+
+	return cfg, nil
 }

@@ -21,7 +21,7 @@ import (
 type Runner struct {
 }
 
-func Run(cfg *Config) error {
+func Run(cfg Config) error {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -80,9 +80,11 @@ func Run(cfg *Config) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		log.Println("Starting server")
 		if err := server.Run(); err != nil {
 			log.Printf("error running server: %v", err)
 		}
+		log.Println("Server stopped")
 	}()
 
 	select {

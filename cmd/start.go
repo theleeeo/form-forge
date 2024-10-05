@@ -7,39 +7,25 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/theleeeo/form-forge/runner"
-	"gopkg.in/yaml.v3"
 )
-
-func loadConfig() *runner.Config {
-	content, err := os.ReadFile("./.cfg.yml")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var config runner.Config
-	err = yaml.Unmarshal(content, &config)
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-
-	return &config
-}
 
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the server",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
+		cfg, err := loadConfig()
+		if err != nil {
+			log.Println(err)
+			os.Exit(1)
+		}
 
-		cfg := loadConfig()
-
+		// Todo: Do not log secrets
 		log.Println("Config:", prettyPrint(cfg))
 
 		if err := runner.Run(cfg); err != nil {
 			log.Println(err)
-			return nil
+			os.Exit(1)
 		}
-
-		return nil
 	},
 }
 

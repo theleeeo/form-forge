@@ -26,7 +26,8 @@ form-forge
 data/
 tmp/
 
-.cfg.yml
+cfg.*
+!example.cfg.*
 
 coverage.*
 
