@@ -3,16 +3,22 @@ package entrypoints
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	form_api "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/form"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func convertUpdateFormParams(params *form_api.UpdateRequest) form.UpdateFormParams {
-	return form.UpdateFormParams{
-		Id:               params.Id,
-		CreateFormParams: convertCreateFormParams(params.NewForm),
+func convertUpdateFormParams(params *form_api.UpdateRequest) (form.UpdateFormParams, error) {
+	uid, err := uuid.Parse(params.Id)
+	if err != nil {
+		return form.UpdateFormParams{}, fmt.Errorf("could not parse id: %w", err)
 	}
+
+	return form.UpdateFormParams{
+		Id:               uid,
+		CreateFormParams: convertCreateFormParams(params.NewForm),
+	}, nil
 }
 
 func convertCreateFormParams(params *form_api.CreateRequest) form.CreateFormParams {
@@ -60,7 +66,8 @@ func convertForm(f form.Form) *form_api.Form {
 	}
 
 	return &form_api.Form{
-		Id:        f.Id,
+		BaseId:    f.BaseId.String(),
+		VersionId: f.VersionId.String(),
 		Version:   f.Version,
 		Title:     f.Title,
 		Questions: questions,

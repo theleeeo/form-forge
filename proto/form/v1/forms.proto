@@ -7,12 +7,13 @@ package form.v1;
 option go_package = "github.com/theleeeo/form-forge/api-go/form/v1;form";
 
 message Form {
-  string id = 1;
-  uint32 version = 2;
-  string title = 3;
-  string description = 4;
-  repeated Question questions = 5;
-  google.protobuf.Timestamp created_at = 6;
+  string base_id = 1;
+  string version_id = 2;
+  uint32 version = 3;
+  string title = 4;
+  string description = 5;
+  repeated Question questions = 6;
+  google.protobuf.Timestamp created_at = 7;
 }
 
 message Question {
@@ -49,7 +50,10 @@ service FormService {
   // rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
 
-message ResponsePagination { uint64 total = 1; }
+message ResponsePagination {
+  uint64 total = 1;
+  // bytes next_page_token = 2;
+}
 
 message GetByIdRequest { string id = 1; }
 

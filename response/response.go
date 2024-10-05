@@ -1,12 +1,16 @@
 package response
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Response struct {
 	// ID is the unique identifier of the response.
-	Id string
+	Id uuid.UUID
 	// FormId is the unique identifier of the form this response is for.
-	FormVersionId string
+	FormVersionId uuid.UUID
 
 	// Answers is the list of answers to the questions in the form.
 	Answers []Answer
@@ -15,16 +19,16 @@ type Response struct {
 }
 
 type Answer interface {
-	Question() int
+	Question() uuid.UUID
 }
 
 type AnswerBase struct {
-	// QuestionOrder is the order of the question this answer is for.
-	QuestionOrder int
+	// QuestionId is the unique identifier of the question this answer is for.
+	QuestionId uuid.UUID
 }
 
-func (a AnswerBase) Question() int {
-	return a.QuestionOrder
+func (a AnswerBase) Question() uuid.UUID {
+	return a.QuestionId
 }
 
 type CheckboxAnswer struct {

@@ -1,9 +1,9 @@
 package app
 
 import (
-	"database/sql"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -11,14 +11,9 @@ import (
 	"github.com/theleeeo/form-forge/response"
 )
 
-const (
-	dbName = "testdb"
-)
-
 type TestSuiteRepo struct {
 	suite.Suite
-	db       *sql.DB
-	stopFunc func() error
+	testDB *TestDB
 
 	app *App
 }
@@ -27,20 +22,21 @@ func (t *TestSuiteRepo) SetupSuite() {
 	log.SetOutput(os.Stderr)
 	t.T().Log("setting up the suite")
 
-	db, stopFunc, err := GetTestMariadb(dbName)
+	schema, err := os.ReadFile(filepath.Join("..", "schema.sql"))
 	if err != nil {
 		t.T().Fatal(err)
 	}
 
-	t.db = db
-	t.stopFunc = stopFunc
-
-	formRepo, err := form.NewMySql(nil, db)
+	testDB, err := SetupTestPostgresql("test_formforge", string(schema))
 	if err != nil {
 		t.T().Fatal(err)
 	}
 
-	responseRepo, err := response.NewMySql(nil, db)
+	t.testDB = testDB
+
+	formRepo := form.NewPgRepo(testDB.Pool)
+
+	responseRepo := response.NewPgRepo(testDB.Pool)
 	if err != nil {
 		t.T().Fatal(err)
 	}
@@ -51,10 +47,8 @@ func (t *TestSuiteRepo) SetupSuite() {
 }
 
 func (t *TestSuiteRepo) TearDownAllSuite() {
-	if t.stopFunc != nil {
-		if err := t.stopFunc(); err != nil {
-			t.T().Errorf("Failed to stop the container: %v", err)
-		}
+	if err := t.testDB.Shutdown(); err != nil {
+		t.T().Errorf("Failed to close test DB: %v", err)
 	}
 }
 
@@ -62,42 +56,13 @@ func (t *TestSuiteRepo) SetupTest() {
 }
 
 func (t *TestSuiteRepo) BeforeTest(suiteName, testName string) {
-
+	if err := t.testDB.Reset(); err != nil {
+		t.T().Fatal(err)
+	}
 }
 
 func (t *TestSuiteRepo) AfterTest(suiteName, testName string) {
-	if err := t.ClearDatabase(); err != nil {
-		t.T().Errorf("Failed to clear database: %v", err)
-	}
-}
 
-func (t *TestSuiteRepo) ClearDatabase() error {
-	_, err := t.db.Exec("DELETE FROM answers")
-	if err != nil {
-		return err
-	}
-
-	_, err = t.db.Exec("DELETE FROM responses")
-	if err != nil {
-		return err
-	}
-
-	_, err = t.db.Exec("DELETE FROM options")
-	if err != nil {
-		return err
-	}
-
-	_, err = t.db.Exec("DELETE FROM questions")
-	if err != nil {
-		return err
-	}
-
-	_, err = t.db.Exec("DELETE FROM forms")
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // run the test suite

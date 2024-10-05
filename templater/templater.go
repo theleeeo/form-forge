@@ -5,6 +5,7 @@ import (
 	"context"
 	"html/template"
 
+	"github.com/google/uuid"
 	"github.com/theleeeo/form-forge/form"
 )
 
@@ -20,12 +21,13 @@ type Templater struct {
 }
 
 type expandedForm struct {
-	ID        string
+	ID        uuid.UUID
 	Title     string
 	Questions []expandedQuestion
 }
 
 type expandedQuestion struct {
+	Id      uuid.UUID
 	Order   int
 	Type    string
 	Title   string
@@ -64,6 +66,7 @@ func constructExpandedForm(f form.Form) expandedForm {
 		}
 
 		questions = append(questions, expandedQuestion{
+			Id:      questionBase.Id,
 			Title:   questionBase.Title,
 			Type:    qType,
 			Options: expOptions,
@@ -72,7 +75,7 @@ func constructExpandedForm(f form.Form) expandedForm {
 	}
 
 	return expandedForm{
-		ID:        f.Id,
+		ID:        f.BaseId,
 		Title:     f.Title,
 		Questions: questions,
 	}

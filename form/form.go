@@ -3,11 +3,13 @@ package form
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type FormBase struct {
-	Id        string
-	VersionId string
+	BaseId    uuid.UUID
+	VersionId uuid.UUID
 	Version   uint32
 
 	Title       string
@@ -29,12 +31,10 @@ func constructForm(params CreateFormParams) (Form, error) {
 		return Form{}, fmt.Errorf("%w: questions are required", ErrBadArgs)
 	}
 
-	id := UUIDNew().String()
-	versionId := UUIDNew().String()
 	form := Form{
 		FormBase: FormBase{
-			Id:          id,
-			VersionId:   versionId,
+			BaseId:      UUIDNew(),
+			VersionId:   UUIDNew(),
 			Version:     1,
 			Title:       params.Title,
 			Description: params.Description,
@@ -47,6 +47,7 @@ func constructForm(params CreateFormParams) (Form, error) {
 		var question Question
 
 		base := QuestionBase{
+			Id:    UUIDNew(),
 			Title: q.Title,
 		}
 

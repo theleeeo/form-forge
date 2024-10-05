@@ -1,102 +1,108 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Test Form</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <fieldset>
-        <legend>{{ .Title }}</legend>
+      <legend>{{ .Title }}</legend>
 
-        <form action="/submit/{{.ID}}" method="post">
-            {{ range .Questions }}
-            {{ $question := . }}
-            {{ if eq .Type "text" }}
-            <div>
-                <label for="{{ $question.Order }}">{{ .Title }}</label>
-                <input type="text" id="{{ $question.Order }}" name="{{ $question.Order }}">
-            </div>
+      <form action="/submit/{{.ID}}" method="post">
+        {{ range .Questions }} {{ $question := . }} {{ if eq .Type "text" }}
+        <div>
+          <label for="{{ $question.Id }}">{{ .Title }}</label>
+          <input
+            type="text"
+            id="{{ $question.Id }}"
+            name="{{ $question.Id }}"
+          />
+        </div>
 
-            {{ else if eq .Type "radio" }}
-            <div>
-                <label>{{ .Title }}</label>
-                {{ range .Options }}
-                <div>
-                    <input type="radio" id="{{ $question.Order }}-{{ .Order }}" name="{{ $question.Order }}"
-                        value="{{ .Order }}">
-                    <label for="{{ $question.Order }}-{{ .Order }}">{{ .Label }}</label>
-                </div>
-                {{ end }}
-            </div>
+        {{ else if eq .Type "radio" }}
+        <div>
+          <label>{{ .Title }}</label>
+          {{ range .Options }}
+          <div>
+            <input
+              type="radio"
+              id="{{ $question.Id }}-{{ .Order }}"
+              name="{{ $question.Id }}"
+              value="{{ .Order }}"
+            />
+            <label for="{{ $question.Id }}-{{ .Order }}">{{ .Label }}</label>
+          </div>
+          {{ end }}
+        </div>
 
-            {{ else if eq .Type "checkbox" }}
-            <div>
-                <label>{{ .Title }}</label>
-                {{ range .Options }}
-                <div>
-                    <input type="checkbox" id="{{ $question.Order }}-{{ .Order }}" name="{{ $question.Order }}"
-                        value="{{ .Order }}">
-                    <label for="{{ $question.Order }}-{{ .Order }}">{{ .Label }}</label>
-                </div>
-                {{ end }}
-            </div>
-            {{ end }}
+        {{ else if eq .Type "checkbox" }}
+        <div>
+          <label>{{ .Title }}</label>
+          {{ range .Options }}
+          <div>
+            <input
+              type="checkbox"
+              id="{{ $question.Id }}-{{ .Order }}"
+              name="{{ $question.Id }}"
+              value="{{ .Order }}"
+            />
+            <label for="{{ $question.Id }}-{{ .Order }}">{{ .Label }}</label>
+          </div>
+          {{ end }}
+        </div>
+        {{ end }} {{ end }}
 
-            {{ end }}
-
-            <button type="submit">Submit</button>
-        </form>
+        <button type="submit">Submit</button>
+      </form>
     </fieldset>
-</body>
+  </body>
 
-<style>
+  <style>
     body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
     fieldset {
-        width: 95%;
-        margin: 20px auto;
+      width: 95%;
+      margin: 20px auto;
     }
 
     legend {
-        font-weight: bold;
-        font-size: 1.5em;
-        text-align: center;
+      font-weight: bold;
+      font-size: 1.5em;
+      text-align: center;
     }
 
     form {
-        display: flex;
-        flex-direction: column;
+      display: flex;
+      flex-direction: column;
     }
 
     div {
-        margin: 10px 0;
+      margin: 10px 0;
     }
 
     label {
-        font-weight: bold;
+      font-weight: bold;
     }
 
     input[type="text"] {
-        box-sizing: border-box;
-        width: 100%;
-        padding: 5px;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
     }
 
     input[type="radio"],
     input[type="checkbox"] {
-        margin-right: 5px;
-        /* vertical-align: middle; */
+      margin-right: 5px;
+      /* vertical-align: middle; */
     }
 
     button {
-        padding: 10px;
-        margin-top: 10px;
+      padding: 10px;
+      margin-top: 10px;
     }
-</style>
-
+  </style>
 </html>

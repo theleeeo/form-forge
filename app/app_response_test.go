@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/theleeeo/form-forge/form"
 )
 
@@ -19,90 +20,89 @@ func (t *TestSuiteRepo) Test_SubmitResponse() {
 	t.NoError(err)
 
 	t.Run("Form not found", func() {
-		err := t.app.SubmitResponse(context.Background(), "00000000-0000-123-0000-000000000000", map[string][]string{})
+		err := t.app.SubmitResponse(context.Background(), uuid.New(), map[string][]string{})
 		t.ErrorIs(err, ErrFormNotFound)
-
 	})
 
 	t.Run("Successful submit", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"0": {"An answer"},
-			"1": {"1"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[0].Question().Id.String(): {"An answer"},
+			f.Questions[1].Question().Id.String(): {"1"},
 		})
 		t.NoError(err)
 	})
 
-	t.Run("Out of bound key", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"-1": {"An answer", "Another answer"},
+	t.Run("Not found question id", func() {
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			uuid.NewString(): {"An answer", "Another answer"},
+		})
+		t.Error(err)
+	})
+
+	t.Run("Non-uuid key", func() {
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			"hello": {"An answer"},
 		})
 		t.Error(err)
 
-		err = t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
+		err = t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
 			"100": {"An answer", "Another answer"},
 		})
 		t.Error(err)
 	})
 
-	t.Run("Non-int key", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"hello": {"An answer"},
-		})
-		t.Error(err)
-	})
-
 	t.Run("Text, multiple values", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"0": {"An answer", "Another answer"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[0].Question().Id.String(): {"An answer", "Another answer"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Radio, Multiple values", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"1": {"0", "1"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[1].Question().Id.String(): {"0", "1"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Radio, non-int value", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"1": {"hello"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[1].Question().Id.String(): {"hello"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound radio, negative", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"1": {"-1"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[1].Question().Id.String(): {"-1"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound radio, too big", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"1": {"0", "7"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[1].Question().Id.String(): {"0", "7"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound checkbox, negative", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"2": {"-1"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[2].Question().Id.String(): {"-1"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound checkbox, too big", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"2": {"0", "7"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[2].Question().Id.String(): {"0", "7"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Checkbox, non-int value", func() {
-		err := t.app.SubmitResponse(context.Background(), f.Id, map[string][]string{
-			"2": {"hello"},
+		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
+			f.Questions[2].Question().Id.String(): {"hello"},
 		})
 		t.Error(err)
 	})

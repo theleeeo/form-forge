@@ -2,12 +2,14 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	formv1 "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/api-go/form/v1/formconnect"
 	"github.com/theleeeo/form-forge/app"
@@ -27,34 +29,29 @@ func Run(cfg *Config) error {
 	defer cancel()
 
 	//
-	// Create the repository
+	// PostgreSQL
 	//
-	formRepo, err := form.NewMySql(&form.MySqlConfig{
-		Address:  cfg.RepoCfg.Address,
-		User:     cfg.RepoCfg.User,
-		Password: cfg.RepoCfg.Password,
-		Database: cfg.RepoCfg.Database,
-	}, nil)
+	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.RepoCfg.User, cfg.RepoCfg.Password, cfg.RepoCfg.Host, cfg.RepoCfg.Port, cfg.RepoCfg.Database))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
-	defer formRepo.Close()
+	defer dbpool.Close()
 
-	resopnseRepo, err := response.NewMySql(&response.MySqlConfig{
-		Address:  cfg.RepoCfg.Address,
-		User:     cfg.RepoCfg.User,
-		Password: cfg.RepoCfg.Password,
-		Database: cfg.RepoCfg.Database,
-	}, nil)
-	if err != nil {
-		return err
+	if err := dbpool.Ping(ctx); err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
 	}
-	defer resopnseRepo.Close()
 
+	//
+	// Repositories
+	//
+	formRepoPg := form.NewPgRepo(dbpool)
+	resopnseRepoPg := response.NewPgRepo(dbpool)
+
+	//
 	// User service
 	//
-	formSrv := form.NewService(formRepo)
-	responseSrv := response.NewService(resopnseRepo)
+	formSrv := form.NewService(formRepoPg)
+	responseSrv := response.NewService(resopnseRepoPg)
 
 	//
 	// App

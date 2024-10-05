@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/theleeeo/form-forge/app"
 )
 
@@ -32,12 +33,18 @@ func (h *restHandler) handleSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not parse id: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, fmt.Sprintf("error parsing form: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
-	if err := h.app.SubmitResponse(r.Context(), id, r.PostForm); err != nil {
+	if err := h.app.SubmitResponse(r.Context(), uid, r.PostForm); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -52,7 +59,13 @@ func (h *restHandler) getRenderedForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tpl, err := h.app.TemplateForm(r.Context(), id)
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not parse id: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	tpl, err := h.app.TemplateForm(r.Context(), uid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,16 +1,13 @@
-version: '3.8'
-
+version: "3.8"
 services:
-  mariadb:
-    image: mariadb:11
+  accesspoint-db:
+    image: postgres:17
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
-      MYSQL_DATABASE: thor
+      POSTGRES_DB: formforge
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - ./data/db:/var/lib/mysql
-
+      - ./postgres_data:/var/lib/postgresql/data

@@ -20,14 +20,14 @@ var (
 	ErrBadArgs  = errors.New("bad arguments")
 )
 
-func NewService(repo *MySqlRepo) *Service {
+func NewService(repo *Repo) *Service {
 	return &Service{
 		repo: repo,
 	}
 }
 
 type Service struct {
-	repo *MySqlRepo
+	repo *Repo
 }
 
 type CreateFormParams struct {
@@ -57,10 +57,11 @@ func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (F
 	return form, nil
 }
 
-func (s *Service) GetForm(ctx context.Context, id string) (Form, error) {
-	if id == "" {
+func (s *Service) GetForm(ctx context.Context, id uuid.UUID) (Form, error) {
+	if id == uuid.Nil {
 		return Form{}, fmt.Errorf("id is required")
 	}
+
 	return s.repo.GetLatestVersionOfForm(ctx, id)
 }
 
@@ -72,7 +73,7 @@ func (s *Service) ListForms(ctx context.Context, params ListFormsParams) ([]Form
 }
 
 type UpdateFormParams struct {
-	Id string
+	Id uuid.UUID
 	CreateFormParams
 }
 
@@ -86,7 +87,7 @@ func (s *Service) UpdateForm(ctx context.Context, params UpdateFormParams) (Form
 	if err != nil {
 		return Form{}, err
 	}
-	form.Id = params.Id
+	form.BaseId = params.Id
 	form.Version = baseForm.Version + 1
 
 	return form, s.repo.CreateForm(ctx, form)

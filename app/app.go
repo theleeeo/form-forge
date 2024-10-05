@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/theleeeo/form-forge/form"
 	"github.com/theleeeo/form-forge/response"
 	"github.com/theleeeo/form-forge/templater"
@@ -40,7 +42,7 @@ func (a *App) ListForms(ctx context.Context, params form.ListFormsParams) ([]for
 	return f, nil
 }
 
-func (a *App) GetForm(ctx context.Context, id string) (form.Form, error) {
+func (a *App) GetForm(ctx context.Context, id uuid.UUID) (form.Form, error) {
 	f, err := a.formService.GetForm(ctx, id)
 	if err != nil {
 		if errors.Is(err, form.ErrNotFound) {
@@ -53,7 +55,7 @@ func (a *App) GetForm(ctx context.Context, id string) (form.Form, error) {
 	return f, nil
 }
 
-func (a *App) TemplateForm(ctx context.Context, id string) ([]byte, error) {
+func (a *App) TemplateForm(ctx context.Context, id uuid.UUID) ([]byte, error) {
 	f, err := a.GetForm(ctx, id)
 	if err != nil {
 		return nil, err
@@ -67,20 +69,20 @@ func (a *App) TemplateForm(ctx context.Context, id string) ([]byte, error) {
 	return tpl, nil
 }
 
-func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string][]string) error {
+func (a *App) SubmitResponse(ctx context.Context, formId uuid.UUID, resp map[string][]string) error {
 	f, err := a.GetForm(ctx, formId)
 	if err != nil {
-		return err
+		return fmt.Errorf("getting form: %w", err)
 	}
 
 	r, err := a.responseService.ParseResponse(a.convertToFormData(f), resp)
 	if err != nil {
-		return err
+		return fmt.Errorf("parsing response: %w", err)
 	}
 
 	err = a.responseService.SaveResponse(ctx, r)
 	if err != nil {
-		return err
+		return fmt.Errorf("saving response: %w", err)
 	}
 
 	return nil
@@ -88,7 +90,7 @@ func (a *App) SubmitResponse(ctx context.Context, formId string, resp map[string
 
 func (a *App) convertToFormData(f form.Form) response.FormData {
 	formData := response.FormData{
-		Id:        f.Id,
+		Id:        f.BaseId,
 		VersionId: f.VersionId,
 	}
 
@@ -108,6 +110,7 @@ func (a *App) convertToFormData(f form.Form) response.FormData {
 		}
 
 		formData.Questions = append(formData.Questions, response.QuestionData{
+			Id:          q.Question().Id,
 			Type:        questionType,
 			Order:       i,
 			OptionCount: optionCount,

@@ -10,23 +10,24 @@ import (
 	"github.com/theleeeo/form-forge/form"
 )
 
-func NewService(repo *MySqlRepo) *Service {
+func NewService(repo *Repo) *Service {
 	return &Service{
 		repo: repo,
 	}
 }
 
 type Service struct {
-	repo *MySqlRepo
+	repo *Repo
 }
 
 type FormData struct {
-	Id        string
-	VersionId string
+	Id        uuid.UUID
+	VersionId uuid.UUID
 	Questions []QuestionData
 }
 
 type QuestionData struct {
+	Id          uuid.UUID
 	Order       int
 	Type        form.QuestionType
 	OptionCount int
@@ -34,32 +35,41 @@ type QuestionData struct {
 
 func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Response, error) {
 	r := Response{
-		Id:            uuid.NewString(),
+		Id:            uuid.New(),
 		FormVersionId: formData.VersionId,
 		Answers:       make([]Answer, len(formData.Questions)),
 		SubmittedAt:   time.Now().UTC(),
 	}
 
+	i := 0
 	for q, a := range resp {
 		if len(a) == 0 {
 			return Response{}, fmt.Errorf("answer %s is empty", q)
 		}
 
-		questionOrder, err := strconv.Atoi(q)
+		questionId, err := uuid.Parse(q)
 		if err != nil {
 			return Response{}, fmt.Errorf("answer key %s could not be parsed: %w", q, err)
 		}
 
-		if questionOrder < 0 || questionOrder >= len(formData.Questions) {
-			return Response{}, fmt.Errorf("answer key %s is out of range", q)
+		base := AnswerBase{
+			QuestionId: questionId,
 		}
 
-		base := AnswerBase{
-			QuestionOrder: questionOrder,
+		var question QuestionData
+		for _, q := range formData.Questions {
+			if q.Id == questionId {
+				question = q
+				break
+			}
+		}
+
+		if question.Id == uuid.Nil {
+			return Response{}, fmt.Errorf("question %s not found", q)
 		}
 
 		var answer Answer
-		switch formData.Questions[questionOrder].Type {
+		switch question.Type {
 		case form.QuestionTypeText:
 			if len(a) > 1 {
 				return Response{}, fmt.Errorf("text answer %s has more than one value", q)
@@ -80,7 +90,7 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 				return Response{}, fmt.Errorf("answer value %s could not be parsed: %w", a[0], err)
 			}
 
-			if value < 0 || value >= formData.Questions[questionOrder].OptionCount {
+			if value < 0 || value >= question.OptionCount {
 				return Response{}, fmt.Errorf("answer value %s is out of range", a)
 			}
 
@@ -97,7 +107,7 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 					return Response{}, fmt.Errorf("answer value %s could not be parsed: %w", v, err)
 				}
 
-				if value < 0 || value >= formData.Questions[questionOrder].OptionCount {
+				if value < 0 || value >= question.OptionCount {
 					return Response{}, fmt.Errorf("answer value %s is out of range", a)
 				}
 
@@ -110,7 +120,8 @@ func (s *Service) ParseResponse(formData FormData, resp map[string][]string) (Re
 			}
 		}
 
-		r.Answers[questionOrder] = answer
+		r.Answers[i] = answer
+		i++
 	}
 
 	return r, nil

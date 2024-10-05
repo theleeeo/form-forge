@@ -1,6 +1,10 @@
 package form
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type QuestionType int
 
@@ -16,6 +20,7 @@ type Question interface {
 }
 
 type QuestionBase struct {
+	Id    uuid.UUID
 	Title string
 }
 
