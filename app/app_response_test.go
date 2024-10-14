@@ -9,7 +9,7 @@ import (
 
 func (t *TestSuiteRepo) Test_SubmitResponse() {
 	// Create a new form
-	f, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
+	f, qs, err := t.app.CreateNewForm(context.Background(), form.CreateFormParams{
 		Title: "Test Form",
 		Questions: []form.CreateQuestionParams{
 			{Type: form.QuestionTypeText, Title: "Text question"},
@@ -26,8 +26,8 @@ func (t *TestSuiteRepo) Test_SubmitResponse() {
 
 	t.Run("Successful submit", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[0].Question().Id.String(): {"An answer"},
-			f.Questions[1].Question().Id.String(): {"1"},
+			qs[0].Question().Id.String(): {"An answer"},
+			qs[1].Question().Id.String(): {"1"},
 		})
 		t.NoError(err)
 	})
@@ -53,56 +53,56 @@ func (t *TestSuiteRepo) Test_SubmitResponse() {
 
 	t.Run("Text, multiple values", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[0].Question().Id.String(): {"An answer", "Another answer"},
+			qs[0].Question().Id.String(): {"An answer", "Another answer"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Radio, Multiple values", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[1].Question().Id.String(): {"0", "1"},
+			qs[1].Question().Id.String(): {"0", "1"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Radio, non-int value", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[1].Question().Id.String(): {"hello"},
+			qs[1].Question().Id.String(): {"hello"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound radio, negative", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[1].Question().Id.String(): {"-1"},
+			qs[1].Question().Id.String(): {"-1"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound radio, too big", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[1].Question().Id.String(): {"0", "7"},
+			qs[1].Question().Id.String(): {"0", "7"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound checkbox, negative", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[2].Question().Id.String(): {"-1"},
+			qs[2].Question().Id.String(): {"-1"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Out of bound checkbox, too big", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[2].Question().Id.String(): {"0", "7"},
+			qs[2].Question().Id.String(): {"0", "7"},
 		})
 		t.Error(err)
 	})
 
 	t.Run("Checkbox, non-int value", func() {
 		err := t.app.SubmitResponse(context.Background(), f.BaseId, map[string][]string{
-			f.Questions[2].Question().Id.String(): {"hello"},
+			qs[2].Question().Id.String(): {"hello"},
 		})
 		t.Error(err)
 	})

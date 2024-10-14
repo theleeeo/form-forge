@@ -12,8 +12,7 @@ message Form {
   uint32 version = 3;
   string title = 4;
   string description = 5;
-  repeated Question questions = 6;
-  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp created_at = 6;
 }
 
 message Question {
@@ -48,6 +47,8 @@ service FormService {
   rpc Update(UpdateRequest) returns (UpdateResponse);
 
   // rpc Delete(DeleteRequest) returns (DeleteResponse);
+
+  rpc GetQuestions(GetQuestionsRequest) returns (GetQuestionsResponse);
 }
 
 message ResponsePagination {
@@ -55,7 +56,13 @@ message ResponsePagination {
   // bytes next_page_token = 2;
 }
 
-message GetByIdRequest { string id = 1; }
+message GetByIdRequest {
+  // The base ID of the form to get.
+  string base_id = 1;
+  // The version ID of the form to get.
+  // If not provided, the latest version of the form will be returned.
+  string version_id = 2;
+}
 
 message GetByIdResponse { Form form = 1; }
 
@@ -65,7 +72,10 @@ message CreateRequest {
   repeated CreateQuestionParameters questions = 3;
 }
 
-message CreateResponse { Form form = 1; }
+message CreateResponse {
+  string base_id = 1;
+  string version_id = 2;
+}
 
 message CreateQuestionParameters {
   oneof question {
@@ -96,9 +106,20 @@ message ListResponse {
 
 message UpdateRequest {
   // The ID of the form to update
-  string id = 1;
+  string base_id = 1;
   // The new form to replace the old form with
   CreateRequest new_form = 2;
 }
 
-message UpdateResponse { Form form = 1; }
+message UpdateResponse {
+  string base_id = 1;
+  string version_id = 2;
+}
+
+message GetQuestionsRequest {
+  string base_id = 1;
+  // If set, will return the questions of the form at the specified version.
+  string version_id = 2;
+}
+
+message GetQuestionsResponse { repeated Question questions = 1; }

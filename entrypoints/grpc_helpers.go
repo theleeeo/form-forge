@@ -10,13 +10,13 @@ import (
 )
 
 func convertUpdateFormParams(params *form_api.UpdateRequest) (form.UpdateFormParams, error) {
-	uid, err := uuid.Parse(params.Id)
+	baseUuid, err := uuid.Parse(params.BaseId)
 	if err != nil {
 		return form.UpdateFormParams{}, fmt.Errorf("could not parse id: %w", err)
 	}
 
 	return form.UpdateFormParams{
-		Id:               uid,
+		Id:               baseUuid,
 		CreateFormParams: convertCreateFormParams(params.NewForm),
 	}, nil
 }
@@ -60,22 +60,17 @@ func convertCreateQuestionParams(qp *form_api.CreateQuestionParameters) form.Cre
 }
 
 func convertForm(f form.Form) *form_api.Form {
-	questions := make([]*form_api.Question, 0, len(f.Questions))
-	for _, q := range f.Questions {
-		questions = append(questions, convertQuestionToProto(q))
-	}
-
 	return &form_api.Form{
-		BaseId:    f.BaseId.String(),
-		VersionId: f.VersionId.String(),
-		Version:   f.Version,
-		Title:     f.Title,
-		Questions: questions,
-		CreatedAt: timestamppb.New(f.CreatedAt),
+		BaseId:      f.BaseId.String(),
+		VersionId:   f.VersionId.String(),
+		Version:     f.Version,
+		Title:       f.Title,
+		Description: f.Description,
+		CreatedAt:   timestamppb.New(f.CreatedAt),
 	}
 }
 
-func convertQuestionToProto(q form.Question) *form_api.Question {
+func convertQuestion(q form.Question) *form_api.Question {
 	switch q := q.(type) {
 	case form.TextQuestion:
 		return &form_api.Question{

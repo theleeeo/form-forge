@@ -19,7 +19,7 @@ func NewPgRepo(dbpool *pgxpool.Pool) *Repo {
 	}
 }
 
-func (r *Repo) CreateForm(ctx context.Context, form Form) error {
+func (r *Repo) CreateForm(ctx context.Context, form Form, questions []Question) error {
 	tx, err := r.conn.Begin(ctx)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (r *Repo) CreateForm(ctx context.Context, form Form) error {
 		return fmt.Errorf("inserting form: %w", err)
 	}
 
-	if err := r.insertQuestions(ctx, tx, form.VersionId, form.Questions); err != nil {
+	if err := r.insertQuestions(ctx, tx, form.VersionId, questions); err != nil {
 		return fmt.Errorf("inserting questions: %w", err)
 	}
 
@@ -88,9 +88,9 @@ func (r *Repo) insertOptions(ctx context.Context, tx pgx.Tx, questionID uuid.UUI
 	return nil
 }
 
-func (r *Repo) GetLatestVersionOfForm(ctx context.Context, formID uuid.UUID) (Form, error) {
+func (r *Repo) GetLatestVersionOfBase(ctx context.Context, baseId uuid.UUID) (Form, error) {
 	var versionID string
-	err := r.conn.QueryRow(ctx, "SELECT version_id FROM forms WHERE base_id = $1 ORDER BY version DESC LIMIT 1", formID).Scan(&versionID)
+	err := r.conn.QueryRow(ctx, "SELECT version_id FROM forms WHERE base_id = $1 ORDER BY version DESC LIMIT 1", baseId).Scan(&versionID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return Form{}, ErrNotFound
@@ -98,7 +98,7 @@ func (r *Repo) GetLatestVersionOfForm(ctx context.Context, formID uuid.UUID) (Fo
 		return Form{}, err
 	}
 
-	return r.getFormVersion(ctx, versionID)
+	return r.GetVersion(ctx, versionID)
 }
 
 func (r *Repo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, error) {
@@ -123,7 +123,7 @@ func (r *Repo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, e
 			return nil, err
 		}
 
-		form, err := r.getFormVersion(ctx, version_id)
+		form, err := r.GetVersion(ctx, version_id)
 		if err != nil {
 			return nil, err
 		}
@@ -134,37 +134,20 @@ func (r *Repo) ListForms(ctx context.Context, params ListFormsParams) ([]Form, e
 	return forms, nil
 }
 
-func (r *Repo) getFormVersion(ctx context.Context, versionID string) (Form, error) {
-	formBase, err := r.getFormBaseVersion(ctx, versionID)
-	if err != nil {
-		return Form{}, fmt.Errorf("getting form base version: %w", err)
-	}
+func (r *Repo) GetVersion(ctx context.Context, versionId string) (Form, error) {
+	var form Form
 
-	questions, err := r.GetQuestions(ctx, versionID)
-	if err != nil {
-		return Form{}, fmt.Errorf("getting questions: %w", err)
-	}
-
-	return Form{
-		FormBase:  formBase,
-		Questions: questions,
-	}, nil
-}
-
-func (r *Repo) getFormBaseVersion(ctx context.Context, versionID string) (FormBase, error) {
-	var form FormBase
-
-	err := r.conn.QueryRow(ctx, "SELECT base_id, version_id, version, title, description, created_at FROM forms WHERE version_id = $1", versionID).
+	err := r.conn.QueryRow(ctx, "SELECT base_id, version_id, version, title, description, created_at FROM forms WHERE version_id = $1", versionId).
 		Scan(&form.BaseId, &form.VersionId, &form.Version, &form.Title, &form.Description, &form.CreatedAt)
 	if err != nil {
-		return FormBase{}, fmt.Errorf("querying form: %w", err)
+		return Form{}, fmt.Errorf("querying form: %w", err)
 	}
 
 	return form, nil
 }
 
-func (r *Repo) GetQuestions(ctx context.Context, formVersionID string) ([]Question, error) {
-	rows, err := r.conn.Query(ctx, "SELECT id, title, question_type FROM questions WHERE form_version_id = $1 ORDER BY order_idx", formVersionID)
+func (r *Repo) GetQuestions(ctx context.Context, baseId uuid.UUID) ([]Question, error) {
+	rows, err := r.conn.Query(ctx, "SELECT id, title, question_type FROM questions WHERE form_version_id = (SELECT version_id FROM forms WHERE base_id = $1 ORDER BY version DESC LIMIT 1) ORDER BY order_idx", baseId)
 	if err != nil {
 		return nil, err
 	}
@@ -219,4 +202,43 @@ func (r *Repo) getOptions(ctx context.Context, questionID uuid.UUID) ([]string, 
 	}
 
 	return options, nil
+}
+
+func (r *Repo) GetQuestionsOfVersion(ctx context.Context, varsionId uuid.UUID) ([]Question, error) {
+	rows, err := r.conn.Query(ctx, "SELECT id, title, question_type FROM questions WHERE form_version_id = $1 ORDER BY order_idx", varsionId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var questions []Question
+	for rows.Next() {
+		var base QuestionBase
+		var questionType QuestionType
+		if err := rows.Scan(&base.Id, &base.Title, &questionType); err != nil {
+			return nil, err
+		}
+
+		var q Question
+		switch questionType {
+		case QuestionTypeText:
+			q = TextQuestion{QuestionBase: base}
+		case QuestionTypeRadio:
+			options, err := r.getOptions(ctx, base.Id)
+			if err != nil {
+				return nil, err
+			}
+			q = RadioQuestion{QuestionBase: base, Options: options}
+		case QuestionTypeCheckbox:
+			options, err := r.getOptions(ctx, base.Id)
+			if err != nil {
+				return nil, err
+			}
+			q = CheckboxQuestion{QuestionBase: base, Options: options}
+		}
+
+		questions = append(questions, q)
+	}
+
+	return questions, nil
 }

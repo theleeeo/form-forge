@@ -39,9 +39,9 @@ type expandedOption struct {
 	Order int
 }
 
-func constructExpandedForm(f form.Form) expandedForm {
-	questions := make([]expandedQuestion, 0, len(f.Questions))
-	for questionOrder, q := range f.Questions {
+func constructExpandedForm(f form.Form, qs []form.Question) expandedForm {
+	questions := make([]expandedQuestion, 0, len(qs))
+	for questionOrder, q := range qs {
 		questionBase := q.Question()
 
 		var options []string
@@ -81,12 +81,12 @@ func constructExpandedForm(f form.Form) expandedForm {
 	}
 }
 
-func (t *Templater) Generate(ctx context.Context, f form.Form) ([]byte, error) {
+func (t *Templater) Generate(ctx context.Context, f form.Form, qs []form.Question) ([]byte, error) {
 	template := template.Must(template.New("test").ParseFiles("templates/test.html"))
 	template = template.Lookup("test.html")
 
 	var tpl bytes.Buffer
-	if err := template.Execute(&tpl, constructExpandedForm(f)); err != nil {
+	if err := template.Execute(&tpl, constructExpandedForm(f, qs)); err != nil {
 		return nil, err
 	}
 

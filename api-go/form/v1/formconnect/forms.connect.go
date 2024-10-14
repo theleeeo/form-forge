@@ -41,15 +41,19 @@ const (
 	FormServiceListProcedure = "/form.v1.FormService/List"
 	// FormServiceUpdateProcedure is the fully-qualified name of the FormService's Update RPC.
 	FormServiceUpdateProcedure = "/form.v1.FormService/Update"
+	// FormServiceGetQuestionsProcedure is the fully-qualified name of the FormService's GetQuestions
+	// RPC.
+	FormServiceGetQuestionsProcedure = "/form.v1.FormService/GetQuestions"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	formServiceServiceDescriptor       = v1.File_form_v1_forms_proto.Services().ByName("FormService")
-	formServiceGetByIdMethodDescriptor = formServiceServiceDescriptor.Methods().ByName("GetById")
-	formServiceCreateMethodDescriptor  = formServiceServiceDescriptor.Methods().ByName("Create")
-	formServiceListMethodDescriptor    = formServiceServiceDescriptor.Methods().ByName("List")
-	formServiceUpdateMethodDescriptor  = formServiceServiceDescriptor.Methods().ByName("Update")
+	formServiceServiceDescriptor            = v1.File_form_v1_forms_proto.Services().ByName("FormService")
+	formServiceGetByIdMethodDescriptor      = formServiceServiceDescriptor.Methods().ByName("GetById")
+	formServiceCreateMethodDescriptor       = formServiceServiceDescriptor.Methods().ByName("Create")
+	formServiceListMethodDescriptor         = formServiceServiceDescriptor.Methods().ByName("List")
+	formServiceUpdateMethodDescriptor       = formServiceServiceDescriptor.Methods().ByName("Update")
+	formServiceGetQuestionsMethodDescriptor = formServiceServiceDescriptor.Methods().ByName("GetQuestions")
 )
 
 // FormServiceClient is a client for the form.v1.FormService service.
@@ -60,6 +64,7 @@ type FormServiceClient interface {
 	// Updating the form will create a new version of the form with its contents
 	// being the provided form
 	Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error)
+	GetQuestions(context.Context, *connect.Request[v1.GetQuestionsRequest]) (*connect.Response[v1.GetQuestionsResponse], error)
 }
 
 // NewFormServiceClient constructs a client for the form.v1.FormService service. By default, it uses
@@ -96,15 +101,22 @@ func NewFormServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(formServiceUpdateMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getQuestions: connect.NewClient[v1.GetQuestionsRequest, v1.GetQuestionsResponse](
+			httpClient,
+			baseURL+FormServiceGetQuestionsProcedure,
+			connect.WithSchema(formServiceGetQuestionsMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // formServiceClient implements FormServiceClient.
 type formServiceClient struct {
-	getById *connect.Client[v1.GetByIdRequest, v1.GetByIdResponse]
-	create  *connect.Client[v1.CreateRequest, v1.CreateResponse]
-	list    *connect.Client[v1.ListRequest, v1.ListResponse]
-	update  *connect.Client[v1.UpdateRequest, v1.UpdateResponse]
+	getById      *connect.Client[v1.GetByIdRequest, v1.GetByIdResponse]
+	create       *connect.Client[v1.CreateRequest, v1.CreateResponse]
+	list         *connect.Client[v1.ListRequest, v1.ListResponse]
+	update       *connect.Client[v1.UpdateRequest, v1.UpdateResponse]
+	getQuestions *connect.Client[v1.GetQuestionsRequest, v1.GetQuestionsResponse]
 }
 
 // GetById calls form.v1.FormService.GetById.
@@ -127,6 +139,11 @@ func (c *formServiceClient) Update(ctx context.Context, req *connect.Request[v1.
 	return c.update.CallUnary(ctx, req)
 }
 
+// GetQuestions calls form.v1.FormService.GetQuestions.
+func (c *formServiceClient) GetQuestions(ctx context.Context, req *connect.Request[v1.GetQuestionsRequest]) (*connect.Response[v1.GetQuestionsResponse], error) {
+	return c.getQuestions.CallUnary(ctx, req)
+}
+
 // FormServiceHandler is an implementation of the form.v1.FormService service.
 type FormServiceHandler interface {
 	GetById(context.Context, *connect.Request[v1.GetByIdRequest]) (*connect.Response[v1.GetByIdResponse], error)
@@ -135,6 +152,7 @@ type FormServiceHandler interface {
 	// Updating the form will create a new version of the form with its contents
 	// being the provided form
 	Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error)
+	GetQuestions(context.Context, *connect.Request[v1.GetQuestionsRequest]) (*connect.Response[v1.GetQuestionsResponse], error)
 }
 
 // NewFormServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -167,6 +185,12 @@ func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(formServiceUpdateMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	formServiceGetQuestionsHandler := connect.NewUnaryHandler(
+		FormServiceGetQuestionsProcedure,
+		svc.GetQuestions,
+		connect.WithSchema(formServiceGetQuestionsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/form.v1.FormService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FormServiceGetByIdProcedure:
@@ -177,6 +201,8 @@ func NewFormServiceHandler(svc FormServiceHandler, opts ...connect.HandlerOption
 			formServiceListHandler.ServeHTTP(w, r)
 		case FormServiceUpdateProcedure:
 			formServiceUpdateHandler.ServeHTTP(w, r)
+		case FormServiceGetQuestionsProcedure:
+			formServiceGetQuestionsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -200,4 +226,8 @@ func (UnimplementedFormServiceHandler) List(context.Context, *connect.Request[v1
 
 func (UnimplementedFormServiceHandler) Update(context.Context, *connect.Request[v1.UpdateRequest]) (*connect.Response[v1.UpdateResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.Update is not implemented"))
+}
+
+func (UnimplementedFormServiceHandler) GetQuestions(context.Context, *connect.Request[v1.GetQuestionsRequest]) (*connect.Response[v1.GetQuestionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("form.v1.FormService.GetQuestions is not implemented"))
 }

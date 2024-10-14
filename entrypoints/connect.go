@@ -49,3 +49,11 @@ func (f *FormConnectServer) Update(ctx context.Context, req *connect.Request[for
 	}
 	return connect.NewResponse(resp), nil
 }
+
+func (f *FormConnectServer) GetQuestions(ctx context.Context, req *connect.Request[formv1.GetQuestionsRequest]) (*connect.Response[formv1.GetQuestionsResponse], error) {
+	resp, err := f.grpcServer.GetQuestions(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}

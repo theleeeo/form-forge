@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/cors"
 	formv1 "github.com/theleeeo/form-forge/api-go/form/v1"
 	"github.com/theleeeo/form-forge/api-go/form/v1/formconnect"
 	"github.com/theleeeo/form-forge/app"
@@ -17,6 +20,27 @@ import (
 	"github.com/theleeeo/form-forge/form"
 	"github.com/theleeeo/form-forge/response"
 )
+
+func LogMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		respCatcher := httptest.NewRecorder()
+		next.ServeHTTP(respCatcher, r)
+
+		log.Printf("%s %s %d", r.Method, r.URL.Path, respCatcher.Code)
+
+		copyHeaders(w.Header(), respCatcher.Header())
+		w.WriteHeader(respCatcher.Code)
+		_, _ = w.Write(respCatcher.Body.Bytes())
+	})
+}
+
+func copyHeaders(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
 
 type Runner struct {
 }
@@ -68,7 +92,9 @@ func Run(cfg Config) error {
 		HttpAddr: cfg.HttpAddress,
 	})
 	server.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
-	server.Handle(formconnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer)))
+
+	connectPath, connectHandler := formconnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer))
+	server.Handle(connectPath, cors.AllowAll().Handler(LogMiddleware(connectHandler)))
 
 	httpHandler := entrypoints.NewRestHandler(appImpl)
 	httpHandler.RegisterRoutes(server.Mux())

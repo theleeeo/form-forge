@@ -29,7 +29,7 @@ type App struct {
 	templater       *templater.Templater
 }
 
-func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (form.Form, error) {
+func (a *App) CreateNewForm(ctx context.Context, params form.CreateFormParams) (form.Form, []form.Question, error) {
 	return a.formService.CreateNewForm(ctx, params)
 }
 
@@ -55,13 +55,29 @@ func (a *App) GetForm(ctx context.Context, id uuid.UUID) (form.Form, error) {
 	return f, nil
 }
 
-func (a *App) TemplateForm(ctx context.Context, id uuid.UUID) ([]byte, error) {
-	f, err := a.GetForm(ctx, id)
+func (a *App) GetQuestions(ctx context.Context, params form.GetQuestionsParams) ([]form.Question, error) {
+	qs, err := a.formService.GetQuestions(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
-	tpl, err := a.templater.Generate(ctx, f)
+	return qs, nil
+}
+
+func (a *App) TemplateForm(ctx context.Context, id uuid.UUID) ([]byte, error) {
+	f, err := a.GetForm(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("getting form: %w", err)
+	}
+
+	qs, err := a.GetQuestions(ctx, form.GetQuestionsParams{
+		BaseId: f.BaseId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("getting questions: %w", err)
+	}
+
+	tpl, err := a.templater.Generate(ctx, f, qs)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +91,14 @@ func (a *App) SubmitResponse(ctx context.Context, formId uuid.UUID, resp map[str
 		return fmt.Errorf("getting form: %w", err)
 	}
 
-	r, err := a.responseService.ParseResponse(a.convertToFormData(f), resp)
+	qs, err := a.GetQuestions(ctx, form.GetQuestionsParams{
+		BaseId: f.BaseId,
+	})
+	if err != nil {
+		return fmt.Errorf("getting questions: %w", err)
+	}
+
+	r, err := a.responseService.ParseResponse(a.convertToFormData(f, qs), resp)
 	if err != nil {
 		return fmt.Errorf("parsing response: %w", err)
 	}
@@ -88,13 +111,13 @@ func (a *App) SubmitResponse(ctx context.Context, formId uuid.UUID, resp map[str
 	return nil
 }
 
-func (a *App) convertToFormData(f form.Form) response.FormData {
+func (a *App) convertToFormData(f form.Form, qs []form.Question) response.FormData {
 	formData := response.FormData{
 		Id:        f.BaseId,
 		VersionId: f.VersionId,
 	}
 
-	for i, q := range f.Questions {
+	for i, q := range qs {
 		var questionType form.QuestionType
 		var optionCount int
 		switch q := q.(type) {
@@ -120,14 +143,14 @@ func (a *App) convertToFormData(f form.Form) response.FormData {
 	return formData
 }
 
-func (a *App) UpdateForm(ctx context.Context, params form.UpdateFormParams) (form.Form, error) {
-	f, err := a.formService.UpdateForm(ctx, params)
+func (a *App) UpdateForm(ctx context.Context, params form.UpdateFormParams) (form.Form, []form.Question, error) {
+	f, qs, err := a.formService.UpdateForm(ctx, params)
 	if err != nil {
 		if errors.Is(err, form.ErrNotFound) {
-			return form.Form{}, ErrFormNotFound
+			return form.Form{}, nil, ErrFormNotFound
 		}
-		return form.Form{}, err
+		return form.Form{}, nil, err
 	}
 
-	return f, nil
+	return f, qs, nil
 }

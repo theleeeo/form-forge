@@ -22,28 +22,27 @@ func NewFormGRPCServer(app *app.App) *formGrpcServer {
 
 type formGrpcServer struct {
 	app *app.App
-
-	form_api.UnimplementedFormServiceServer
 }
 
 func (g *formGrpcServer) Create(ctx context.Context, params *form_api.CreateRequest) (*form_api.CreateResponse, error) {
-	resp, err := g.app.CreateNewForm(ctx, convertCreateFormParams(params))
+	resp, _, err := g.app.CreateNewForm(ctx, convertCreateFormParams(params))
 	if err != nil {
 		return nil, err
 	}
 
 	return &form_api.CreateResponse{
-		Form: convertForm(resp),
+		BaseId:    resp.BaseId.String(),
+		VersionId: resp.VersionId.String(),
 	}, nil
 }
 
 func (g *formGrpcServer) GetById(ctx context.Context, params *form_api.GetByIdRequest) (*form_api.GetByIdResponse, error) {
-	uid, err := uuid.Parse(params.Id)
+	baseUUID, err := uuid.Parse(params.BaseId)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "could not parse id: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "could not parse base_id: %v", err)
 	}
 
-	f, err := g.app.GetForm(ctx, uid)
+	f, err := g.app.GetForm(ctx, baseUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func (g *formGrpcServer) Update(ctx context.Context, params *form_api.UpdateRequ
 		return nil, status.Errorf(codes.InvalidArgument, "could not convert update params: %v", err)
 	}
 
-	resp, err := g.app.UpdateForm(ctx, p)
+	resp, _, err := g.app.UpdateForm(ctx, p)
 	if err != nil {
 		if errors.Is(err, app.ErrFormNotFound) {
 			return nil, status.Errorf(codes.NotFound, "form not found")
@@ -88,6 +87,42 @@ func (g *formGrpcServer) Update(ctx context.Context, params *form_api.UpdateRequ
 	}
 
 	return &form_api.UpdateResponse{
-		Form: convertForm(resp),
+		BaseId:    resp.BaseId.String(),
+		VersionId: resp.VersionId.String(),
+	}, nil
+}
+
+func (g *formGrpcServer) GetQuestions(ctx context.Context, params *form_api.GetQuestionsRequest) (*form_api.GetQuestionsResponse, error) {
+	var baseUUID, versionUUID uuid.UUID
+	var err error
+
+	if params.BaseId != "" {
+		baseUUID, err = uuid.Parse(params.BaseId)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "could not parse base_id: %v", err)
+		}
+	}
+
+	if params.VersionId == "" {
+		if baseUUID == uuid.Nil {
+			return nil, status.Errorf(codes.InvalidArgument, "base_id is required")
+		}
+	}
+
+	q, err := g.app.GetQuestions(ctx, form.GetQuestionsParams{
+		BaseId:    baseUUID,
+		VersionId: versionUUID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var questions []*form_api.Question
+	for _, question := range q {
+		questions = append(questions, convertQuestion(question))
+	}
+
+	return &form_api.GetQuestionsResponse{
+		Questions: questions,
 	}, nil
 }

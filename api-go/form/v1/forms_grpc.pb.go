@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	FormService_GetById_FullMethodName = "/form.v1.FormService/GetById"
-	FormService_Create_FullMethodName  = "/form.v1.FormService/Create"
-	FormService_List_FullMethodName    = "/form.v1.FormService/List"
-	FormService_Update_FullMethodName  = "/form.v1.FormService/Update"
+	FormService_GetById_FullMethodName      = "/form.v1.FormService/GetById"
+	FormService_Create_FullMethodName       = "/form.v1.FormService/Create"
+	FormService_List_FullMethodName         = "/form.v1.FormService/List"
+	FormService_Update_FullMethodName       = "/form.v1.FormService/Update"
+	FormService_GetQuestions_FullMethodName = "/form.v1.FormService/GetQuestions"
 )
 
 // FormServiceClient is the client API for FormService service.
@@ -35,6 +36,7 @@ type FormServiceClient interface {
 	// Updating the form will create a new version of the form with its contents
 	// being the provided form
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	GetQuestions(ctx context.Context, in *GetQuestionsRequest, opts ...grpc.CallOption) (*GetQuestionsResponse, error)
 }
 
 type formServiceClient struct {
@@ -81,6 +83,15 @@ func (c *formServiceClient) Update(ctx context.Context, in *UpdateRequest, opts 
 	return out, nil
 }
 
+func (c *formServiceClient) GetQuestions(ctx context.Context, in *GetQuestionsRequest, opts ...grpc.CallOption) (*GetQuestionsResponse, error) {
+	out := new(GetQuestionsResponse)
+	err := c.cc.Invoke(ctx, FormService_GetQuestions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FormServiceServer is the server API for FormService service.
 // All implementations should embed UnimplementedFormServiceServer
 // for forward compatibility
@@ -91,6 +102,7 @@ type FormServiceServer interface {
 	// Updating the form will create a new version of the form with its contents
 	// being the provided form
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	GetQuestions(context.Context, *GetQuestionsRequest) (*GetQuestionsResponse, error)
 }
 
 // UnimplementedFormServiceServer should be embedded to have forward compatible implementations.
@@ -108,6 +120,9 @@ func (UnimplementedFormServiceServer) List(context.Context, *ListRequest) (*List
 }
 func (UnimplementedFormServiceServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedFormServiceServer) GetQuestions(context.Context, *GetQuestionsRequest) (*GetQuestionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetQuestions not implemented")
 }
 
 // UnsafeFormServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -193,6 +208,24 @@ func _FormService_Update_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FormService_GetQuestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetQuestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FormServiceServer).GetQuestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FormService_GetQuestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FormServiceServer).GetQuestions(ctx, req.(*GetQuestionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FormService_ServiceDesc is the grpc.ServiceDesc for FormService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -215,6 +248,10 @@ var FormService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Update",
 			Handler:    _FormService_Update_Handler,
+		},
+		{
+			MethodName: "GetQuestions",
+			Handler:    _FormService_GetQuestions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

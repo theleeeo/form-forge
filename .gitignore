@@ -33,3 +33,4 @@ coverage.*
 
 # Until the frontend is ready for a v1, lets ignore it
 frontend/
+frontend_old/

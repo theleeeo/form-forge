@@ -43,26 +43,26 @@ type CreateQuestionParams struct {
 	Options []string
 }
 
-func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (Form, error) {
-	form, err := constructForm(params)
+func (s *Service) CreateNewForm(ctx context.Context, params CreateFormParams) (Form, []Question, error) {
+	form, questions, err := constructForm(params)
 	if err != nil {
-		return Form{}, err
+		return Form{}, nil, err
 	}
 
-	err = s.repo.CreateForm(ctx, form)
+	err = s.repo.CreateForm(ctx, form, questions)
 	if err != nil {
-		return Form{}, err
+		return Form{}, nil, err
 	}
 
-	return form, nil
+	return form, questions, nil
 }
 
-func (s *Service) GetForm(ctx context.Context, id uuid.UUID) (Form, error) {
-	if id == uuid.Nil {
-		return Form{}, fmt.Errorf("id is required")
+func (s *Service) GetForm(ctx context.Context, baseId uuid.UUID) (Form, error) {
+	if baseId == uuid.Nil {
+		return Form{}, fmt.Errorf("baseId is required")
 	}
 
-	return s.repo.GetLatestVersionOfForm(ctx, id)
+	return s.repo.GetLatestVersionOfBase(ctx, baseId)
 }
 
 type ListFormsParams struct {
@@ -77,18 +77,37 @@ type UpdateFormParams struct {
 	CreateFormParams
 }
 
-func (s *Service) UpdateForm(ctx context.Context, params UpdateFormParams) (Form, error) {
+func (s *Service) UpdateForm(ctx context.Context, params UpdateFormParams) (Form, []Question, error) {
 	baseForm, err := s.GetForm(ctx, params.Id)
 	if err != nil {
-		return Form{}, fmt.Errorf("failed to get form: %w", err)
+		return Form{}, nil, fmt.Errorf("geting form: %w", err)
 	}
 
-	form, err := constructForm(params.CreateFormParams)
+	form, questions, err := constructForm(params.CreateFormParams)
 	if err != nil {
-		return Form{}, err
+		return Form{}, nil, err
 	}
 	form.BaseId = params.Id
 	form.Version = baseForm.Version + 1
 
-	return form, s.repo.CreateForm(ctx, form)
+	if err := s.repo.CreateForm(ctx, form, questions); err != nil {
+		return Form{}, nil, fmt.Errorf("creating form: %w", err)
+	}
+
+	return form, questions, nil
+}
+
+type GetQuestionsParams struct {
+	BaseId    uuid.UUID
+	VersionId uuid.UUID
+}
+
+func (s *Service) GetQuestions(ctx context.Context, params GetQuestionsParams) ([]Question, error) {
+	if params.VersionId != uuid.Nil {
+		return s.repo.GetQuestionsOfVersion(ctx, params.VersionId)
+	} else if params.BaseId != uuid.Nil {
+		return s.repo.GetQuestions(ctx, params.BaseId)
+	}
+
+	return nil, fmt.Errorf("either baseId or versionId is required")
 }
