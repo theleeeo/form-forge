@@ -5,7 +5,7 @@
 	export let data;
 </script>
 
-<Tabs tabStyle="underline" contentClass="p-4 mt-4">
+<Tabs tabStyle="underline" contentClass="p-4 mt-4 min-w-[50%]">
 	<TabItem open title="General">
 		<GeneralTab form={data.form} questions={data.questions} />
 	</TabItem>

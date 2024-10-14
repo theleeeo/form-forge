@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CreateQuestion from '$lib/components/view-question/CreateQuestion.svelte';
+	import ViewForm from '$lib/components/view-form/ViewForm.svelte';
 </script>
 
-<CreateQuestion />
+<ViewForm mode="create" />
