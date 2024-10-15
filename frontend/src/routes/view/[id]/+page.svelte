@@ -1,6 +1,7 @@
 <script>
 	import { Tabs, TabItem } from 'flowbite-svelte';
 	import GeneralTab from './GeneralTab.svelte';
+	import ViewTab from './ViewTab.svelte';
 
 	export let data;
 </script>
@@ -9,7 +10,9 @@
 	<TabItem open title="General">
 		<GeneralTab form={data.form} questions={data.questions} />
 	</TabItem>
-	<TabItem title="View" disabled></TabItem>
+	<TabItem title="View">
+		<ViewTab id={data.form.baseId} />
+	</TabItem>
 	<TabItem title="Responses" disabled></TabItem>
 	<TabItem title="History" disabled></TabItem>
 </Tabs>
