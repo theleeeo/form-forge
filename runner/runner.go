@@ -88,8 +88,7 @@ func Run(cfg Config) error {
 	// API Server
 	//
 	server := entrypoints.NewServer(ctx, &entrypoints.Config{
-		GrpcAddr: cfg.GrpcAddress,
-		HttpAddr: cfg.HttpAddress,
+		Addr: cfg.Addr,
 	})
 	server.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
 

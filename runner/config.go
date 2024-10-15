@@ -3,18 +3,13 @@ package runner
 import "errors"
 
 type Config struct {
-	GrpcAddress string   `yaml:"grpc-address"`
-	HttpAddress string   `yaml:"http-address"`
-	RepoCfg     PgConfig `yaml:"repo"`
+	Addr    string   `yaml:"grpc-address"`
+	RepoCfg PgConfig `yaml:"repo"`
 }
 
 func (c Config) Validate() error {
-	if c.GrpcAddress == "" {
-		return errors.New("missing grpc address")
-	}
-
-	if c.HttpAddress == "" {
-		return errors.New("missing http address")
+	if c.Addr == "" {
+		return errors.New("missing listen address")
 	}
 
 	if err := c.RepoCfg.Validate(); err != nil {

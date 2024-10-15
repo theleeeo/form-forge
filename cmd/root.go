@@ -54,8 +54,7 @@ func loadConfig() (runner.Config, error) {
 	viper.AutomaticEnv()
 
 	cfg := runner.Config{
-		GrpcAddress: viper.GetString("grpc-address"),
-		HttpAddress: viper.GetString("http-address"),
+		Addr: viper.GetString("addr"),
 		RepoCfg: runner.PgConfig{
 			Host:     viper.GetString("repo.host"),
 			Port:     viper.GetInt("repo.port"),

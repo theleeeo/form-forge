@@ -8,6 +8,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -80,7 +81,6 @@ func NewServer(ctx context.Context, cfg *Config) *server {
 	)
 
 	httpServer := &http.Server{
-		Addr:         cfg.HttpAddr,
 		Handler:      http.NewServeMux(),
 		ReadTimeout:  4 * time.Second,
 		WriteTimeout: 8 * time.Second,
@@ -100,8 +100,7 @@ func NewServer(ctx context.Context, cfg *Config) *server {
 }
 
 type Config struct {
-	GrpcAddr string
-	HttpAddr string
+	Addr string
 }
 
 type server struct {
@@ -118,13 +117,17 @@ func (s *server) Mux() *http.ServeMux {
 }
 
 func (s *server) Run() error {
-	listener, err := net.Listen("tcp", s.cfg.GrpcAddr)
+	listener, err := net.Listen("tcp", s.cfg.Addr)
 	if err != nil {
 		return err
 	}
 
+	m := cmux.New(listener)
+	grpcListener := m.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+	httpListener := m.Match(cmux.HTTP1Fast())
+
 	go func() {
-		if err := s.httpServer.ListenAndServe(); err != nil {
+		if err := s.httpServer.Serve(httpListener); err != nil {
 			if err == http.ErrServerClosed {
 				return
 			}
@@ -133,8 +136,14 @@ func (s *server) Run() error {
 	}()
 
 	go func() {
-		if err := s.grpcServer.Serve(listener); err != nil {
+		if err := s.grpcServer.Serve(grpcListener); err != nil {
 			log.Printf("grpc server error: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := m.Serve(); err != nil {
+			log.Printf("cmux error: %v", err)
 		}
 	}()
 
@@ -144,6 +153,8 @@ func (s *server) Run() error {
 	if err := s.httpServer.Shutdown(s.ctx); err != nil {
 		return err
 	}
+
+	m.Close()
 
 	return nil
 }
