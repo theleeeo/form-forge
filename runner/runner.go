@@ -87,16 +87,25 @@ func Run(cfg Config) error {
 	//
 	// API Server
 	//
-	server := entrypoints.NewServer(ctx, &entrypoints.Config{
-		Addr: cfg.Addr,
+	apiServer := entrypoints.NewServer(ctx, &entrypoints.Config{
+		Addr: cfg.ApiAddr,
 	})
-	server.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
+	apiServer.RegisterService(&formv1.FormService_ServiceDesc, formGrpcServer)
 
 	connectPath, connectHandler := formconnect.NewFormServiceHandler(entrypoints.NewFormConnectServer(formGrpcServer))
-	server.Handle(connectPath, cors.AllowAll().Handler(LogMiddleware(connectHandler)))
+	apiServer.Handle(connectPath, cors.AllowAll().Handler(LogMiddleware(connectHandler)))
+
+	//
+	// Public Server
+	//
+	mux := http.NewServeMux()
+	publicServer := http.Server{
+		Addr:    cfg.PublicAddr,
+		Handler: mux,
+	}
 
 	httpHandler := entrypoints.NewRestHandler(appImpl)
-	httpHandler.RegisterRoutes(server.Mux())
+	httpHandler.RegisterRoutes(mux)
 	//
 	// Run the server
 	//
@@ -105,11 +114,33 @@ func Run(cfg Config) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		log.Println("Starting server")
-		if err := server.Run(); err != nil {
-			log.Printf("error running server: %v", err)
+		log.Println("Starting api server")
+		if err := apiServer.Run(); err != nil {
+			log.Printf("error running api server: %v", err)
 		}
-		log.Println("Server stopped")
+		log.Println("Api server stopped")
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Println("Starting public server")
+		if err := publicServer.ListenAndServe(); err != nil {
+			log.Printf("error running public server: %v", err)
+		}
+		log.Println("public server stopped")
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		<-ctx.Done()
+		log.Println("Shutting down public server")
+		if err := publicServer.Shutdown(ctx); err != nil {
+			log.Printf("error shutting down public server: %v", err)
+		}
+		log.Println("Public server stopped")
 	}()
 
 	select {
