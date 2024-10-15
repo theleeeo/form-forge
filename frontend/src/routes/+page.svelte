@@ -2,7 +2,7 @@
 	import { formClient } from '$lib/formClient.js';
 	import { Form, ListRequest } from '$lib/proto/form/v1/forms_pb.js';
 	import FormPreview from './FormPreview.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	let forms: Form[] = [];
 

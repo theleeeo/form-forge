@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Helper, Textarea, Button, Dropdown, DropdownItem, Alert } from 'flowbite-svelte';
+	import { Helper, Textarea, Button, Dropdown, DropdownItem } from 'flowbite-svelte';
 	import { ChevronDownOutline } from 'flowbite-svelte-icons';
 	import SortableList from './SortableList.svelte';
 	import QuestionInput from './QuestionInput.svelte';
@@ -16,6 +16,7 @@
 	} from '$lib/proto/form/v1/forms_pb.js';
 	import { formClient } from '$lib/formClient.js';
 	import { ConnectError } from '@connectrpc/connect';
+	import { activeAlert } from '$lib/alert.ts';
 
 	export let mode: 'view' | 'edit' | 'create' = 'view';
 	export let form: Form | undefined = undefined;
@@ -135,12 +136,11 @@
 						})
 					})
 				)
-				.then((response) => {
-					console.log('Form updated', response);
+				.then(() => {
+					activeAlert.set({ type: 'success', message: 'Form updated' });
 				})
 				.catch((error) => {
-					showAlert(ConnectError.from(error).message);
-					console.error('Error updating form', error);
+					activeAlert.set({ type: 'error', message: ConnectError.from(error).message });
 				});
 			return;
 		} else {
@@ -152,12 +152,11 @@
 						questions: questions
 					})
 				)
-				.then((response) => {
-					console.log('Form created', response);
+				.then(() => {
+					activeAlert.set({ type: 'success', message: 'Form created' });
 				})
 				.catch((error) => {
-					showAlert(ConnectError.from(error).message);
-					console.error('Error creating form', error);
+					activeAlert.set({ type: 'error', message: ConnectError.from(error).message });
 				});
 		}
 	}
@@ -165,14 +164,6 @@
 	let title: string = '';
 	let description: string = '';
 	let listQuestions: OrderableQuestion[] = [];
-
-	let alert: string = '';
-	const showAlert = (message: string) => {
-		alert = message;
-		setTimeout(() => {
-			alert = '';
-		}, 5000);
-	};
 
 	let disabled: boolean = false;
 
@@ -204,6 +195,7 @@
 		id="title-input"
 		type="text"
 		classDiv="mb-4"
+		classInput={disabled ? 'cursor-not-allowed' : ''}
 		bind:value={title}
 		{disabled}
 	>
@@ -250,12 +242,6 @@
 		<Button class="mt-4" on:click={submitForm}>{mode === 'create' ? 'Create' : 'Update'}</Button>
 	{/if}
 </div>
-
-{#if alert}
-	<Alert color="red" class="fixed top-0 m-4">
-		{alert}
-	</Alert>
-{/if}
 
 <style>
 	.input-field {

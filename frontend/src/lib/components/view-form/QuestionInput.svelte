@@ -1,18 +1,5 @@
 <script lang="ts">
-	import { Value } from '@bufbuild/protobuf';
-	import {
-		Label,
-		Input,
-		Helper,
-		Textarea,
-		Button,
-		Dropdown,
-		DropdownItem,
-		FloatingLabelInput,
-		Listgroup,
-		InputAddon,
-		Card
-	} from 'flowbite-svelte';
+	import { Label } from 'flowbite-svelte';
 	import { TrashBinOutline } from 'flowbite-svelte-icons';
 	import { createEventDispatcher } from 'svelte';
 	import FloatingLableInputLocal from './FloatingLableInputLocal.svelte';
@@ -59,6 +46,7 @@
 			bind:value={question.title}
 			type="text"
 			classDiv="w-full"
+			classInput={disabled ? 'cursor-not-allowed' : ''}
 			{disabled}
 		/>
 	</div>
@@ -71,7 +59,7 @@
 					name="quesion-{question.order}-option-{i}"
 					placeholder="..."
 					type="text"
-					classInput="pb-2"
+					classInput="pb-2 {disabled ? 'cursor-not-allowed' : ''}"
 					bind:value={question.options[i]}
 					{disabled}
 					on:change={() => {
@@ -91,7 +79,7 @@
 					name="quesion-{question.order}-option-next"
 					placeholder="..."
 					type="text"
-					classInput="pb-2"
+					classInput="pb-2 {disabled ? 'cursor-not-allowed' : ''}"
 					bind:value={newOption}
 					{disabled}
 					on:change={() => {

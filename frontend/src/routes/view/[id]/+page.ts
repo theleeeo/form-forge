@@ -3,24 +3,6 @@ import { Form, GetByIdRequest, GetQuestionsRequest } from '$lib/proto/form/v1/fo
 import { ConnectError } from '@connectrpc/connect';
 
 export const load = async ({ params }) => {
-	// try {
-	// 	const response = await formClient.getById(
-	// 		new GetByIdRequest({
-	// 			baseId: params.id
-	// 		})
-	// 	);
-
-	// 	if (!response.form) {
-	// 		throw new Error('no form returned');
-	// 	}
-
-	// 	return {
-	// 		form: response.form
-	// 	};
-	// } catch (error) {
-	// 	throw new Error(`Failed to fetch form: ${ConnectError.from(error).message}`);
-	// }
-
 	const formResp = formClient.getById(
 		new GetByIdRequest({
 			baseId: params.id
