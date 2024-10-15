@@ -67,12 +67,17 @@
     fieldset {
       width: 95%;
       margin: 20px auto;
+      background-color: white;
     }
 
     legend {
       font-weight: bold;
       font-size: 1.5em;
       text-align: center;
+
+      /* A white outline around the text to make it visible on dark backgrounds */
+      text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
+        1px 1px 0 #fff;
     }
 
     form {
